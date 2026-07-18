@@ -4,11 +4,68 @@
 {% block accent %}#6366f1{% endblock %}
 {% block accent_dark %}#4f46e5{% endblock %}
 
+{% block head %}
+<style>
+/* ── Progress panel ── */
+.progress-panel {
+  display: none;
+  background: #111;
+  border: 1px solid #1d1d1d;
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 12px;
+}
+.progress-panel.show { display: block; }
+
+.progress-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.progress-spinner {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border: 2.5px solid #222;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+.progress-title { font-size: 13.5px; font-weight: 700; color: #ccc; }
+.progress-sub   { font-size: 12px; color: #444; margin-top: 2px; }
+
+.progress-bar-wrap { background: #1a1a1a; border-radius: 20px; height: 5px; margin-bottom: 14px; }
+.progress-bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width .4s; }
+
+.module-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.module-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+  background: #151515; border: 1px solid #222; color: #3a3a3a;
+  transition: all .2s;
+}
+.module-pill.done   { background: color-mix(in srgb,var(--accent) 12%,transparent); border-color: color-mix(in srgb,var(--accent) 30%,transparent); color: var(--accent); }
+.module-pill.active { background: #1a1a1a; border-color: #333; color: #aaa; }
+.module-pill i { font-size: 10px; }
+
+/* ── Advanced options collapsible ── */
+.adv-toggle {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: #3a3a3a;
+  cursor: pointer; margin: 12px 0 0;
+  background: none; border: none; font-family: inherit;
+  text-transform: uppercase; letter-spacing: .07em; width: 100%; text-align: left;
+  transition: color .15s;
+}
+.adv-toggle:hover { color: #888; }
+.adv-toggle i { transition: transform .2s; font-size: 11px; }
+.adv-toggle.open i { transform: rotate(90deg); }
+.adv-body { display: none; margin-top: 12px; }
+.adv-body.show { display: block; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="page-header">
   <h1><i class="fas fa-graduation-cap"></i> Course Generator</h1>
-  <p class="subtitle">AI-powered courses with module content, quizzes &amp; assignments</p>
+  <p class="subtitle">AI-powered courses with modules, quizzes &amp; assignments — export as PDF or DOCX</p>
 </div>
 
 <div class="split">
@@ -28,10 +85,18 @@
         <div class="form-group mb-0">
           <label class="form-label">Modules</label>
           <select class="select" id="num_modules">
-            <option value="2">2 Modules</option>
-            <option value="3" selected>3 Modules</option>
-            <option value="4">4 Modules</option>
-            <option value="5">5 Modules</option>
+            <option value="2">2 modules</option>
+            <option value="3" selected>3 modules</option>
+            <option value="4">4 modules</option>
+            <option value="5">5 modules</option>
+            <option value="8">8 modules</option>
+            <option value="10">10 modules</option>
+            <option value="15">15 modules</option>
+            <option value="20">20 modules</option>
+            <option value="25">25 modules</option>
+            <option value="30">30 modules</option>
+            <option value="40">40 modules</option>
+            <option value="50">50 modules</option>
           </select>
         </div>
         <div class="form-group mb-0">
@@ -49,17 +114,64 @@
         <input class="input" id="language" placeholder="English" value="English">
       </div>
 
-      <button class="btn btn-primary" id="generateBtn" onclick="generate()">
+      <!-- Advanced options -->
+      <button class="adv-toggle" id="advToggle" onclick="toggleAdv()">
+        <i class="fas fa-chevron-right"></i> Advanced options
+      </button>
+      <div class="adv-body" id="advBody">
+        <div class="input-row" style="margin-top:0;">
+          <div class="form-group mb-0">
+            <label class="form-label">Words / module</label>
+            <select class="select" id="words_per_module">
+              <option value="150">~150 words</option>
+              <option value="300" selected>~300 words</option>
+              <option value="500">~500 words</option>
+              <option value="750">~750 words</option>
+              <option value="1000">~1 000 words</option>
+              <option value="1500">~1 500 words</option>
+            </select>
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label">Quiz questions</label>
+            <select class="select" id="quiz_count">
+              <option value="1">1 question</option>
+              <option value="2">2 questions</option>
+              <option value="3" selected>3 questions</option>
+              <option value="5">5 questions</option>
+              <option value="8">8 questions</option>
+              <option value="10">10 questions</option>
+              <option value="15">15 questions</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0;">
+          <label class="form-label">Assignment</label>
+          <select class="select" id="include_assignment">
+            <option value="true" selected>Include assignment per module</option>
+            <option value="false">No assignment</option>
+          </select>
+        </div>
+      </div>
+      <!-- /Advanced -->
+
+      <button class="btn btn-primary" id="generateBtn" onclick="startGenerate()" style="margin-top:16px;">
         <i class="fas fa-wand-magic-sparkles"></i> Generate Course
       </button>
     </div>
 
-    <div class="loader" id="loader">
-      <div class="spinner"></div>
-      <div>
-        <div class="loader-text" style="font-weight:700;color:#888;">Generating with AI…</div>
-        <div class="loader-text" style="font-size:12px;margin-top:2px;">This may take 15–30 seconds</div>
+    <!-- Progress panel -->
+    <div class="progress-panel" id="progressPanel">
+      <div class="progress-header">
+        <div class="progress-spinner" id="progressSpinner"></div>
+        <div>
+          <div class="progress-title" id="progressTitle">Starting…</div>
+          <div class="progress-sub"  id="progressSub"></div>
+        </div>
       </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+      </div>
+      <div class="module-pills" id="modulePills"></div>
     </div>
   </div>
 
@@ -95,38 +207,138 @@
 
 {% block scripts %}
 <script>
-async function generate() {
+// ── Advanced toggle ──────────────────────────────────────────────────────────
+function toggleAdv() {
+  const btn  = document.getElementById('advToggle');
+  const body = document.getElementById('advBody');
+  btn.classList.toggle('open');
+  body.classList.toggle('show');
+}
+
+// ── Generate with SSE streaming ──────────────────────────────────────────────
+let _pills = {};
+
+async function startGenerate() {
   const topic = document.getElementById('topic').value.trim();
   if (!topic) { showMsg('Please enter a topic.', 'warn'); return; }
 
   const btn = document.getElementById('generateBtn');
   btn.disabled = true;
-  document.getElementById('loader').classList.add('show');
+  _pills = {};
+
+  const panel   = document.getElementById('progressPanel');
+  const spinner = document.getElementById('progressSpinner');
+  panel.classList.add('show');
+  document.getElementById('progressTitle').textContent = 'Connecting…';
+  document.getElementById('progressSub').textContent   = '';
+  document.getElementById('progressBar').style.width   = '0%';
+  document.getElementById('modulePills').innerHTML      = '';
   hideMsg();
 
+  const payload = {
+    topic,
+    num_modules:        document.getElementById('num_modules').value,
+    difficulty:         document.getElementById('difficulty').value,
+    language:           document.getElementById('language').value.trim() || 'English',
+    words_per_module:   document.getElementById('words_per_module').value,
+    quiz_count:         document.getElementById('quiz_count').value,
+    include_assignment: document.getElementById('include_assignment').value === 'true',
+  };
+
   try {
-    const r = await fetch('/coursegen/generate', {
-      method: 'POST',
+    const resp = await fetch('/coursegen/generate', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        topic,
-        num_modules: document.getElementById('num_modules').value,
-        difficulty:  document.getElementById('difficulty').value,
-        language:    document.getElementById('language').value || 'English',
-      })
+      body:    JSON.stringify(payload),
     });
-    const d = await r.json();
-    if (d.success) {
-      window.location = '/coursegen/' + d.id;
-    } else {
-      showMsg(d.error || 'Generation failed.', 'error');
-      btn.disabled = false;
-      document.getElementById('loader').classList.remove('show');
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let   buf     = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+
+      // Process complete SSE lines
+      let nl;
+      while ((nl = buf.indexOf('\n\n')) !== -1) {
+        const chunk = buf.slice(0, nl);
+        buf = buf.slice(nl + 2);
+        if (!chunk.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(chunk.slice(6)); } catch { continue; }
+        handleEvent(evt);
+      }
     }
-  } catch(e) {
-    showMsg('Network error. Please try again.', 'error');
+  } catch (e) {
+    showMsg('Connection error: ' + e.message, 'error');
     btn.disabled = false;
-    document.getElementById('loader').classList.remove('show');
+    spinner.style.display = 'none';
+    document.getElementById('progressTitle').textContent = 'Error';
+  }
+}
+
+function handleEvent(evt) {
+  const title   = document.getElementById('progressTitle');
+  const sub     = document.getElementById('progressSub');
+  const bar     = document.getElementById('progressBar');
+  const pills   = document.getElementById('modulePills');
+  const spinner = document.getElementById('progressSpinner');
+  const btn     = document.getElementById('generateBtn');
+
+  if (evt.type === 'status') {
+    title.textContent = evt.msg;
+
+  } else if (evt.type === 'outline') {
+    title.textContent = 'Building modules…';
+    sub.textContent   = evt.title;
+    // Create pills
+    pills.innerHTML = '';
+    _pills = {};
+    (evt.modules || []).forEach(m => {
+      const pill = document.createElement('div');
+      pill.className = 'module-pill';
+      pill.id = 'pill-' + m.number;
+      pill.innerHTML = `<i class="fas fa-circle"></i> ${m.number}`;
+      pill.title = m.title;
+      pills.appendChild(pill);
+      _pills[m.number] = pill;
+    });
+
+  } else if (evt.type === 'progress') {
+    title.textContent = `Module ${evt.current} / ${evt.total}`;
+    sub.textContent   = evt.msg;
+    bar.style.width   = Math.round((evt.current - 1) / evt.total * 100) + '%';
+    // Mark current pill as active
+    if (_pills[evt.current]) {
+      _pills[evt.current].classList.add('active');
+      _pills[evt.current].innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + evt.current;
+    }
+
+  } else if (evt.type === 'module_done') {
+    if (_pills[evt.number]) {
+      _pills[evt.number].classList.remove('active');
+      _pills[evt.number].classList.add('done');
+      _pills[evt.number].innerHTML = '<i class="fas fa-check"></i> ' + evt.number;
+    }
+
+  } else if (evt.type === 'done') {
+    bar.style.width = '100%';
+    spinner.style.animation = 'none';
+    spinner.style.borderTopColor = '#34d399';
+    title.textContent = 'Complete! Redirecting…';
+    sub.textContent   = '';
+    setTimeout(() => { window.location = '/coursegen/' + evt.id; }, 600);
+
+  } else if (evt.type === 'error') {
+    showMsg(evt.msg, 'error');
+    btn.disabled = false;
+    spinner.style.borderTopColor = '#f87171';
+    title.textContent = 'Generation failed';
+    sub.textContent   = '';
+    document.getElementById('progressPanel').classList.remove('show');
   }
 }
 </script>
