@@ -24,10 +24,12 @@ def create_app():
     from apps.coursegen import coursegen_bp
     from apps.emailnewsgen import emailnewsgen_bp
     from apps.actgen import actgen_bp
+    from apps.admin import admin_bp
 
     app.register_blueprint(coursegen_bp)
     app.register_blueprint(emailnewsgen_bp)
     app.register_blueprint(actgen_bp)
+    app.register_blueprint(admin_bp)
 
     import json as _json
     @app.template_filter("from_json")

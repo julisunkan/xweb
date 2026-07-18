@@ -34,6 +34,10 @@
       <i class="fas fa-puzzle-piece"></i> Activity Book
     </a>
   </div>
+  <a class="nav-link {% if request.path.startswith('/admin') %}active{% endif %}" href="/admin/"
+     style="margin-left:auto;flex-shrink:0;color:{% if request.path.startswith('/admin') %}var(--accent){% else %}#3a3a3a{% endif %};">
+    <i class="fas fa-shield-halved"></i> Admin
+  </a>
 </nav>
 
 <!-- ── Page content ── -->
