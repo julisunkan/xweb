@@ -108,9 +108,14 @@
       <button class="btn btn-warning btn-sm" onclick="window.location.href='/actgen/{{ book.id }}/download'">
         <i class="fas fa-download"></i> Download
       </button>
-      <button class="btn btn-danger btn-sm" onclick="deleteBook()">
+      <button class="btn btn-danger btn-sm" id="deleteBtn" onclick="showDeleteConfirm()">
         <i class="fas fa-trash"></i> Delete
       </button>
+      <div id="deleteConfirm" style="display:none;align-items:center;gap:8px;background:#1a0a0a;border:1px solid #7f1d1d;border-radius:10px;padding:8px 12px;">
+        <span style="font-size:13px;color:#fca5a5;">Delete this activity book?</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteBook()"><i class="fas fa-check"></i> Yes, delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="hideDeleteConfirm()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
@@ -339,12 +344,19 @@ function revealTrivia(cardId, correct) {
   card.querySelector('button').style.display = 'none';
 }
 
+function showDeleteConfirm() {
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('deleteConfirm').style.display = 'flex';
+}
+function hideDeleteConfirm() {
+  document.getElementById('deleteConfirm').style.display = 'none';
+  document.getElementById('deleteBtn').style.display = '';
+}
 async function deleteBook() {
-  if (!confirm('Delete this activity book permanently?')) return;
   const r = await fetch('/actgen/{{ book.id }}/delete', { method: 'POST' });
   const d = await r.json();
   if (d.success) window.location = '/actgen/';
-  else showMsg(d.error || 'Delete failed.', 'error');
+  else { hideDeleteConfirm(); showMsg(d.error || 'Delete failed.', 'error'); }
 }
 </script>
 {% endblock %}
