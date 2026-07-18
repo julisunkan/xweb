@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Course Generator{% endblock %}
 {% block navbar_brand %}<span class="navbar-brand"><i class="fas fa-graduation-cap"></i> Course Generator</span>{% endblock %}
-{% block accent %}#6366f1{% endblock %}
-{% block accent_dark %}#4f46e5{% endblock %}
+{% block nav_course %}active{% endblock %}
+{% block accent %}#3b82f6{% endblock %}
+{% block accent_dark %}#2563eb{% endblock %}
 
 {% block head %}
 <style>
@@ -14,24 +15,24 @@
   border-radius: 14px;
   padding: 20px;
   margin-top: 12px;
+  animation: fadeInUp .3s ease both;
 }
 .progress-panel.show { display: block; }
-
-.progress-header {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
-}
+.progress-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .progress-spinner {
   width: 22px; height: 22px; flex-shrink: 0;
-  border: 2.5px solid #222;
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
+  border: 2.5px solid #222; border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
 }
 .progress-title { font-size: 13.5px; font-weight: 700; color: #ccc; }
 .progress-sub   { font-size: 12px; color: #444; margin-top: 2px; }
 
 .progress-bar-wrap { background: #1a1a1a; border-radius: 20px; height: 5px; margin-bottom: 14px; }
-.progress-bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width .4s; }
+.progress-bar-fill {
+  height: 100%; border-radius: 20px;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+  transition: width .4s;
+}
 
 .module-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .module-pill {
@@ -40,7 +41,7 @@
   background: #151515; border: 1px solid #222; color: #3a3a3a;
   transition: all .2s;
 }
-.module-pill.done   { background: color-mix(in srgb,var(--accent) 12%,transparent); border-color: color-mix(in srgb,var(--accent) 30%,transparent); color: var(--accent); }
+.module-pill.done   { background: color-mix(in srgb,var(--green) 12%,transparent); border-color: color-mix(in srgb,var(--green) 30%,transparent); color: var(--green); }
 .module-pill.active { background: #1a1a1a; border-color: #333; color: #aaa; }
 .module-pill i { font-size: 10px; }
 
@@ -51,29 +52,78 @@
   cursor: pointer; margin: 12px 0 0;
   background: none; border: none; font-family: inherit;
   text-transform: uppercase; letter-spacing: .07em; width: 100%; text-align: left;
-  transition: color .15s;
+  transition: color .15s; padding: 8px 0;
 }
 .adv-toggle:hover { color: #888; }
 .adv-toggle i { transition: transform .2s; font-size: 11px; }
 .adv-toggle.open i { transform: rotate(90deg); }
 .adv-body { display: none; margin-top: 12px; }
-.adv-body.show { display: block; }
+.adv-body.show { display: block; animation: fadeInUp .25s ease both; }
+
+/* ── Color accent on form card ── */
+.form-card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.form-card-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(59,130,246,.15); color: var(--blue);
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Course history colorful items ── */
+.course-item {
+  display: flex; align-items: center; gap: 13px;
+  background: #111; border: 1px solid #1e1e1e; border-radius: 13px;
+  padding: 14px 16px; margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, transform .2s, box-shadow .2s;
+  position: relative; overflow: hidden;
+}
+.course-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--blue), var(--green));
+  opacity: 0; transition: opacity .2s;
+}
+.course-item:hover::before { opacity: 1; }
+.course-item:hover {
+  border-color: rgba(59,130,246,.4);
+  background: #141414; transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+}
+
+/* ── Difficulty badges ── */
+.diff-badge-beginner     { background: rgba(34,197,94,.12);  color: var(--green);  border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.diff-badge-intermediate { background: rgba(245,158,11,.12); color: var(--yellow); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.diff-badge-advanced     { background: rgba(239,68,68,.12);  color: var(--red);    border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="page-header">
+<div class="page-header anim-up">
+  <a class="back-link" href="/"><i class="fas fa-arrow-left"></i> Dashboard</a>
   <h1><i class="fas fa-graduation-cap"></i> Course Generator</h1>
   <p class="subtitle">AI-powered courses with modules, quizzes &amp; assignments — export as PDF or DOCX</p>
 </div>
+
+<div class="color-bar"></div>
 
 <div class="split">
 
   <!-- ── Left: form ── -->
   <div class="sticky-col">
-    <div class="card">
-      <p class="section-label" style="margin-top:0;">Generate a new course</p>
+    <div class="card card-glow anim-up d1">
+      <div class="form-card-header">
+        <div class="form-card-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#e0e0e0;">Generate a New Course</div>
+          <div style="font-size:12px;color:#3a3a3a;margin-top:2px;">Powered by Groq AI</div>
+        </div>
+      </div>
 
       <div class="form-group">
         <label class="form-label">Topic</label>
@@ -154,7 +204,7 @@
       </div>
       <!-- /Advanced -->
 
-      <button class="btn btn-primary" id="generateBtn" onclick="startGenerate()" style="margin-top:16px;">
+      <button class="btn btn-info" id="generateBtn" onclick="startGenerate()" style="margin-top:18px;">
         <i class="fas fa-wand-magic-sparkles"></i> Generate Course
       </button>
     </div>
@@ -173,21 +223,46 @@
       </div>
       <div class="module-pills" id="modulePills"></div>
     </div>
+
+    <!-- Info chips -->
+    <div class="card-flat anim-up d3" style="margin-top:0;">
+      <div class="chips">
+        <span class="chip chip-blue"><i class="fas fa-book"></i> Structured modules</span>
+        <span class="chip chip-green"><i class="fas fa-check-circle"></i> Interactive quiz</span>
+        <span class="chip chip-yellow"><i class="fas fa-tasks"></i> Assignments</span>
+        <span class="chip chip-brown"><i class="fas fa-download"></i> PDF export</span>
+      </div>
+    </div>
   </div>
 
   <!-- ── Right: history ── -->
-  <div>
-    <p class="section-label">Your Courses</p>
+  <div class="anim-up d2">
+    <div class="flex items-center justify-between" style="margin-bottom:16px;">
+      <p class="section-label" style="margin:0;">
+        <i class="fas fa-clock-rotate-left" style="color:var(--brown);margin-right:6px;"></i>
+        Your Courses
+      </p>
+      {% if courses %}
+      <span class="badge badge-blue">{{ courses|length }} total</span>
+      {% endif %}
+    </div>
 
     {% if courses %}
       {% for course in courses %}
-      <div class="history-item" onclick="window.location='/coursegen/{{ course.id }}'">
-        <div class="history-icon"><i class="fas fa-graduation-cap"></i></div>
+      <div class="course-item" onclick="window.location='/coursegen/{{ course.id }}'">
+        <div class="history-icon" style="background:rgba(59,130,246,.12);color:var(--blue);">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
         <div class="history-meta">
           <div class="title">{{ course.title }}</div>
-          <div class="sub">
-            {{ course.difficulty }} &middot; {{ course.total_modules }} modules &middot;
-            {{ course.language }} &middot; {{ course.created_at.strftime('%b %d, %Y') }}
+          <div class="sub" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px;">
+            <span class="diff-badge-{{ course.difficulty.lower() }}">{{ course.difficulty }}</span>
+            <span style="color:#2e2e2e;">·</span>
+            <span>{{ course.total_modules }} modules</span>
+            <span style="color:#2e2e2e;">·</span>
+            <span>{{ course.language }}</span>
+            <span style="color:#2e2e2e;">·</span>
+            <span>{{ course.created_at.strftime('%b %d, %Y') }}</span>
           </div>
         </div>
         <i class="fas fa-chevron-right history-arrow"></i>
@@ -261,7 +336,6 @@ async function startGenerate() {
       if (done) break;
       buf += decoder.decode(value, { stream: true });
 
-      // Process complete SSE lines
       let nl;
       while ((nl = buf.indexOf('\n\n')) !== -1) {
         const chunk = buf.slice(0, nl);
@@ -290,11 +364,9 @@ function handleEvent(evt) {
 
   if (evt.type === 'status') {
     title.textContent = evt.msg;
-
   } else if (evt.type === 'outline') {
     title.textContent = 'Building modules…';
     sub.textContent   = evt.title;
-    // Create pills
     pills.innerHTML = '';
     _pills = {};
     (evt.modules || []).forEach(m => {
@@ -306,32 +378,27 @@ function handleEvent(evt) {
       pills.appendChild(pill);
       _pills[m.number] = pill;
     });
-
   } else if (evt.type === 'progress') {
     title.textContent = `Module ${evt.current} / ${evt.total}`;
     sub.textContent   = evt.msg;
     bar.style.width   = Math.round((evt.current - 1) / evt.total * 100) + '%';
-    // Mark current pill as active
     if (_pills[evt.current]) {
       _pills[evt.current].classList.add('active');
       _pills[evt.current].innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + evt.current;
     }
-
   } else if (evt.type === 'module_done') {
     if (_pills[evt.number]) {
       _pills[evt.number].classList.remove('active');
       _pills[evt.number].classList.add('done');
       _pills[evt.number].innerHTML = '<i class="fas fa-check"></i> ' + evt.number;
     }
-
   } else if (evt.type === 'done') {
     bar.style.width = '100%';
     spinner.style.animation = 'none';
-    spinner.style.borderTopColor = '#34d399';
+    spinner.style.borderTopColor = '#22c55e';
     title.textContent = 'Complete! Redirecting…';
     sub.textContent   = '';
     setTimeout(() => { window.location = '/coursegen/' + evt.id; }, 600);
-
   } else if (evt.type === 'error') {
     showMsg(evt.msg, 'error');
     btn.disabled = false;

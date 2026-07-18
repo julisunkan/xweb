@@ -1,56 +1,117 @@
 {% extends "base.html" %}
 {% block title %}Activity Book Generator{% endblock %}
-{% block navbar_brand %}<span class="navbar-brand"><i class="fas fa-puzzle-piece"></i> Activity Book Generator</span>{% endblock %}
+{% block navbar_brand %}<span class="navbar-brand"><i class="fas fa-puzzle-piece"></i> Activity Book</span>{% endblock %}
+{% block nav_actgen %}active{% endblock %}
 {% block accent %}#f59e0b{% endblock %}
 {% block accent_dark %}#d97706{% endblock %}
 
 {% block head %}
 <style>
-/* Activity feature cards */
+/* ── Activity feature grid ── */
 .activity-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-top: 4px;
 }
+@media (max-width: 480px) { .activity-grid { grid-template-columns: 1fr; } }
+
 .activity-feat {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; border-radius: 12px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; border-radius: 13px;
   border: 1px solid #1e1e1e; background: #0f0f0f;
-  transition: transform .2s, border-color .2s;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  position: relative; overflow: hidden;
 }
-.activity-feat:hover { transform: translateY(-2px); }
+.activity-feat::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--af-color, var(--accent));
+  opacity: 0; transition: opacity .2s;
+}
+.activity-feat:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.activity-feat:hover::after { opacity: 1; }
 .activity-feat .af-icon {
-  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
 }
 .activity-feat .af-name { font-size: 12.5px; font-weight: 700; color: #888; }
+.activity-feat .af-desc { font-size: 11px; color: #333; margin-top: 2px; }
 
-/* Difficulty selector */
+/* ── Difficulty selector ── */
 .diff-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 .diff-btn {
-  padding: 10px 8px; border-radius: 10px; border: 1.5px solid #1e1e1e;
-  background: #141414; color: #444; font-size: 12.5px; font-weight: 700;
+  padding: 12px 8px; border-radius: 12px; border: 1.5px solid #1e1e1e;
+  background: #141414; color: #444; font-size: 13px; font-weight: 700;
   cursor: pointer; text-align: center; transition: all .18s; font-family: inherit;
 }
 .diff-btn.selected { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb,var(--accent) 10%,transparent); }
-.diff-btn:hover:not(.selected) { border-color: #333; color: #999; }
+.diff-btn:hover:not(.selected) { border-color: #333; color: #999; background: #1a1a1a; }
+.diff-btn i { display: block; font-size: 18px; margin-bottom: 6px; }
 
-/* Age group pills */
-.age-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+/* ── Age group pills ── */
+.age-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .age-pill {
-  padding: 6px 13px; border-radius: 20px; border: 1.5px solid #1e1e1e;
-  background: #141414; color: #444; font-size: 12.5px; font-weight: 700;
+  padding: 8px 16px; border-radius: 20px; border: 1.5px solid #1e1e1e;
+  background: #141414; color: #444; font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all .18s; font-family: inherit;
 }
-.age-pill.selected { border-color: var(--brown); color: var(--brown); background: rgba(180,83,9,.1); }
-.age-pill:hover:not(.selected) { border-color: #333; color: #999; }
+.age-pill.selected {
+  border-color: var(--brown); color: var(--brown);
+  background: rgba(180,83,9,.1);
+  box-shadow: 0 0 12px rgba(180,83,9,.2);
+}
+.age-pill:hover:not(.selected) { border-color: #333; color: #999; background: #1a1a1a; }
+
+/* ── Book history item ── */
+.book-item {
+  display: flex; align-items: center; gap: 13px;
+  background: #111; border: 1px solid #1e1e1e; border-radius: 13px;
+  padding: 14px 16px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color .2s, background .2s, transform .2s, box-shadow .2s;
+  position: relative; overflow: hidden;
+}
+.book-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--yellow), var(--brown));
+  opacity: 0; transition: opacity .2s;
+}
+.book-item:hover::before { opacity: 1; }
+.book-item:hover {
+  border-color: rgba(245,158,11,.4); background: #141414;
+  transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,.3);
+}
+
+/* Form card header */
+.form-card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 16px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.form-card-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(245,158,11,.15); color: var(--yellow);
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Stats mini row */
+.act-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-top: 14px;
+}
+.act-stat {
+  background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 10px;
+  padding: 12px; text-align: center;
+}
+.act-stat .n { font-size: 20px; font-weight: 900; }
+.act-stat .l { font-size: 10px; color: #333; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <div class="page-header anim-up">
+  <a class="back-link" href="/"><i class="fas fa-arrow-left"></i> Dashboard</a>
   <h1><i class="fas fa-puzzle-piece"></i> Activity Book Generator</h1>
   <p class="subtitle">Custom-themed word searches, Sudoku, crosswords &amp; trivia — all in one book</p>
 </div>
@@ -62,10 +123,13 @@
   <!-- ── Left: form ── -->
   <div class="sticky-col">
     <div class="card card-glow anim-up d1">
-      <p class="section-label" style="margin-top:0;">
-        <i class="fas fa-wand-magic-sparkles" style="color:var(--yellow);margin-right:6px;"></i>
-        Generate Activity Book
-      </p>
+      <div class="form-card-header">
+        <div class="form-card-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#e0e0e0;">Generate Activity Book</div>
+          <div style="font-size:12px;color:#3a3a3a;margin-top:2px;">4 activities · AI-powered content</div>
+        </div>
+      </div>
 
       <div class="form-group">
         <label class="form-label">Theme</label>
@@ -76,14 +140,14 @@
       <div class="form-group">
         <label class="form-label">Difficulty</label>
         <div class="diff-grid" id="diffGrid">
-          <button class="diff-btn" data-val="Easy"   onclick="selectDiff(this)">
-            <i class="fas fa-seedling" style="display:block;font-size:16px;margin-bottom:4px;color:var(--green);"></i> Easy
+          <button class="diff-btn" data-val="Easy" onclick="selectDiff(this)">
+            <i class="fas fa-seedling" style="color:var(--green);"></i> Easy
           </button>
           <button class="diff-btn selected" data-val="Medium" onclick="selectDiff(this)">
-            <i class="fas fa-fire" style="display:block;font-size:16px;margin-bottom:4px;color:var(--yellow);"></i> Medium
+            <i class="fas fa-fire" style="color:var(--yellow);"></i> Medium
           </button>
-          <button class="diff-btn" data-val="Hard"   onclick="selectDiff(this)">
-            <i class="fas fa-bolt" style="display:block;font-size:16px;margin-bottom:4px;color:var(--red);"></i> Hard
+          <button class="diff-btn" data-val="Hard" onclick="selectDiff(this)">
+            <i class="fas fa-bolt" style="color:var(--red);"></i> Hard
           </button>
         </div>
       </div>
@@ -113,23 +177,53 @@
 
     <!-- What's included -->
     <div class="card anim-up d2" style="margin-top:0;">
-      <p class="section-label" style="margin-top:0;">What's included</p>
+      <p class="section-label" style="margin-top:0;">
+        <i class="fas fa-list-check" style="color:var(--yellow);margin-right:6px;"></i>
+        What's Included
+      </p>
       <div class="activity-grid">
-        <div class="activity-feat">
+        <div class="activity-feat" style="--af-color:var(--blue);">
           <div class="af-icon" style="background:rgba(59,130,246,.12);color:var(--blue);"><i class="fas fa-search"></i></div>
-          <div><div class="af-name">Word Search</div></div>
+          <div>
+            <div class="af-name">Word Search</div>
+            <div class="af-desc">Theme-based words</div>
+          </div>
         </div>
-        <div class="activity-feat">
+        <div class="activity-feat" style="--af-color:var(--red);">
           <div class="af-icon" style="background:rgba(239,68,68,.12);color:var(--red);"><i class="fas fa-th"></i></div>
-          <div><div class="af-name">Sudoku</div></div>
+          <div>
+            <div class="af-name">Sudoku</div>
+            <div class="af-desc">Logic puzzle</div>
+          </div>
         </div>
-        <div class="activity-feat">
+        <div class="activity-feat" style="--af-color:var(--green);">
           <div class="af-icon" style="background:rgba(34,197,94,.12);color:var(--green);"><i class="fas fa-crosshairs"></i></div>
-          <div><div class="af-name">Crossword</div></div>
+          <div>
+            <div class="af-name">Crossword</div>
+            <div class="af-desc">AI word-clue pairs</div>
+          </div>
         </div>
-        <div class="activity-feat">
+        <div class="activity-feat" style="--af-color:var(--yellow);">
           <div class="af-icon" style="background:rgba(245,158,11,.12);color:var(--yellow);"><i class="fas fa-question-circle"></i></div>
-          <div><div class="af-name">Trivia Quiz</div></div>
+          <div>
+            <div class="af-name">Trivia Quiz</div>
+            <div class="af-desc">4-option Q&amp;A</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="act-stats">
+        <div class="act-stat">
+          <div class="n grad-green-blue">4</div>
+          <div class="l">Activities</div>
+        </div>
+        <div class="act-stat">
+          <div class="n grad-red-yellow">AI</div>
+          <div class="l">Powered</div>
+        </div>
+        <div class="act-stat">
+          <div class="n grad-text">∞</div>
+          <div class="l">Themes</div>
         </div>
       </div>
     </div>
@@ -137,22 +231,36 @@
 
   <!-- ── Right: history ── -->
   <div class="anim-up d2">
-    <p class="section-label">
-      <i class="fas fa-book-open" style="color:var(--brown);margin-right:6px;"></i>
-      Your Activity Books
-    </p>
+    <div class="flex items-center justify-between" style="margin-bottom:16px;">
+      <p class="section-label" style="margin:0;">
+        <i class="fas fa-book-open" style="color:var(--brown);margin-right:6px;"></i>
+        Your Activity Books
+      </p>
+      {% if books %}
+      <span class="badge badge-yellow">{{ books|length }} total</span>
+      {% endif %}
+    </div>
 
     {% if books %}
       {% for book in books %}
-      <div class="history-item" onclick="window.location='/actgen/{{ book.id }}'">
-        <div class="history-icon" style="background:rgba(245,158,11,.1);color:var(--yellow);">
+      <div class="book-item" onclick="window.location='/actgen/{{ book.id }}'">
+        <div class="history-icon" style="background:rgba(245,158,11,.12);color:var(--yellow);">
           <i class="fas fa-puzzle-piece"></i>
         </div>
         <div class="history-meta">
           <div class="title">{{ book.theme }}</div>
-          <div class="sub">
-            {{ book.difficulty }} &middot; {{ book.age_group }} &middot;
-            {{ book.created_at.strftime('%b %d, %Y') }}
+          <div class="sub" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px;">
+            {% if book.difficulty == 'Easy' %}
+              <span style="background:rgba(34,197,94,.12);color:var(--green);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ book.difficulty }}</span>
+            {% elif book.difficulty == 'Hard' %}
+              <span style="background:rgba(239,68,68,.12);color:var(--red);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ book.difficulty }}</span>
+            {% else %}
+              <span style="background:rgba(245,158,11,.12);color:var(--yellow);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ book.difficulty }}</span>
+            {% endif %}
+            <span style="color:#2e2e2e;">·</span>
+            <span>{{ book.age_group }}</span>
+            <span style="color:#2e2e2e;">·</span>
+            <span>{{ book.created_at.strftime('%b %d, %Y') }}</span>
           </div>
         </div>
         <i class="fas fa-chevron-right history-arrow"></i>
