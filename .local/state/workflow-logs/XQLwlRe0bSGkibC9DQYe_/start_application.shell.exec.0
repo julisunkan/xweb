@@ -1,9 +1,0 @@
-[2026-07-18 14:18:42 +0000] [2106] [INFO] Starting gunicorn 26.0.0
-[2026-07-18 14:18:42 +0000] [2106] [INFO] Listening at:  (2106)
-[2026-07-18 14:18:42 +0000] [2106] [INFO] Using worker: sync
-[2026-07-18 14:18:42 +0000] [2110] [INFO] Booting worker with pid: 2110
-[2026-07-18 14:18:42 +0000] [2110] [WARNING] Reloader is on. Use in development only!
-[2026-07-18 14:18:42 +0000] [2106] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
-[2026-07-18 14:20:53 +0000] [2106] [INFO] Handling signal: term
-[2026-07-18 14:20:53 +0000] [2110] [INFO] Worker exiting (pid: 2110)
-[2026-07-18 14:20:54 +0000] [2106] [INFO] Shutting down: Master
