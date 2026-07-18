@@ -70,13 +70,16 @@ def extract_json(text: str) -> dict:
     )
 
 
-def groq_json(client, messages, max_tokens=2000, retries=4):
+def groq_json(client, messages, max_tokens=2000, retries=5):
     """Call Groq and robustly parse the JSON response.
-    Retries on 429 rate-limit errors with exponential back-off."""
+    Retries on 429 rate-limit errors (exponential back-off) and on JSON
+    decode failures (up to 2 extra attempts with a nudge message)."""
     import time
     from groq import RateLimitError
 
     delay = 1.5
+    json_failures = 0
+
     for attempt in range(retries):
         try:
             resp = client.chat.completions.create(
@@ -84,13 +87,13 @@ def groq_json(client, messages, max_tokens=2000, retries=4):
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=0.6,
+                response_format={"type": "json_object"},
             )
             raw = resp.choices[0].message.content or ""
             return extract_json(raw)
         except RateLimitError as e:
             if attempt == retries - 1:
                 raise
-            # Parse retry-after from the error message if present (e.g. "try again in 610ms")
             wait = delay
             m = re.search(r'in (\d+(?:\.\d+)?)s', str(e))
             if m:
@@ -101,6 +104,16 @@ def groq_json(client, messages, max_tokens=2000, retries=4):
                     wait = int(m.group(1)) / 1000 + 0.5
             time.sleep(wait)
             delay *= 2
+        except json.JSONDecodeError:
+            json_failures += 1
+            if json_failures >= 3 or attempt == retries - 1:
+                raise
+            # Nudge the model to return clean JSON on the next attempt
+            messages = list(messages) + [
+                {"role": "assistant", "content": raw},
+                {"role": "user",      "content": "Your response was not valid JSON. Return only a valid JSON object, nothing else."},
+            ]
+            time.sleep(1.0)
 
 
 def sse(data: dict) -> str:
@@ -546,7 +559,8 @@ def generate():
                     ',"assignment":{"title":"Assignment title","description":"Detailed assignment instructions, at least 80 words."}'
                     if include_assign else ""
                 )
-                max_out = max(1500, words_per_module * 5 + quiz_count * 120 + 400)
+                # tokens ≈ words × 1.4; JSON overhead + quiz + assignment add ~600
+                max_out = max(2000, int(words_per_module * 1.5 * 4) + quiz_count * 200 + 800)
 
                 for i, mod_info in enumerate(module_list[:num_modules]):
                     mod_num   = mod_info.get("number", i + 1)
