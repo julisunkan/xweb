@@ -1,6 +1,0 @@
-[2mResolved [1m34 packages[0m [2min 13ms[0m[0m
-[2mAudited [1m32 packages[0m [2min 11ms[0m[0m
- * Serving Flask app 'app'
- * Debug mode: on
-Address already in use
-Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.
