@@ -17,21 +17,69 @@ def get_groq_key():
     return s.value.strip() if s else ""
 
 
+def extract_json(text: str) -> dict:
+    """Robustly extract the first complete JSON object from arbitrary text."""
+    text = text.strip()
+
+    # 1. Direct parse
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # 2. Strip markdown code fence
+    m = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+    if m:
+        try:
+            return json.loads(m.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+
+    # 3. Find outermost { … } by tracking brace depth
+    start = text.find('{')
+    if start != -1:
+        depth = 0
+        in_str = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape:
+                escape = False
+                continue
+            if ch == '\\' and in_str:
+                escape = True
+                continue
+            if ch == '"':
+                in_str = not in_str
+                continue
+            if in_str:
+                continue
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start:i + 1])
+                    except json.JSONDecodeError:
+                        break
+
+    raise json.JSONDecodeError(
+        f"No valid JSON object found. Raw response (first 300 chars): {text[:300]}",
+        text, 0
+    )
+
+
 def groq_json(client, messages, max_tokens=2000):
-    """Call Groq, strip code fences, parse JSON."""
+    """Call Groq and robustly parse the JSON response."""
     resp = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=messages,
         max_tokens=max_tokens,
-        temperature=0.7,
+        temperature=0.6,
     )
-    raw = resp.choices[0].message.content.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```", 2)[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.rsplit("```", 1)[0]
-    return json.loads(raw.strip())
+    raw = resp.choices[0].message.content or ""
+    return extract_json(raw)
 
 
 def sse(data: dict) -> str:
@@ -430,17 +478,25 @@ def generate():
                 yield sse({"type": "status", "msg": "Generating course outline…"})
 
                 outline = groq_json(client, [
-                    {"role": "system",  "content": "You are an expert course designer. Return only valid JSON."},
-                    {"role": "user",    "content": (
-                        f"Create an outline for a {difficulty} course on '{topic}' in {language} "
-                        f"with exactly {num_modules} modules.\n"
-                        "Return ONLY valid JSON with no extra text:\n"
-                        '{"title":"Course Title","description":"2-sentence overview",'
-                        f'"modules":[{{"number":1,"title":"..."}}'
-                        + (f',{{"number":2,"title":"..."}}' if num_modules > 1 else '')
-                        + f'... exactly {num_modules} items]}}'
+                    {"role": "system", "content": (
+                        "You are an expert course designer. "
+                        "Always respond with valid JSON only — no markdown, no explanation, no extra text."
                     )},
-                ], max_tokens=100 + num_modules * 25)
+                    {"role": "user", "content": (
+                        f"Create a course outline for a {difficulty}-level course on the topic: \"{topic}\". "
+                        f"The course must have exactly {num_modules} module(s). Language: {language}.\n\n"
+                        "Respond with a single JSON object in this exact shape:\n"
+                        "{\n"
+                        '  "title": "<course title>",\n'
+                        '  "description": "<2-sentence overview>",\n'
+                        '  "modules": [\n'
+                        '    {"number": 1, "title": "<module title>"},\n'
+                        f'    ... (exactly {num_modules} items, numbered 1 to {num_modules})\n'
+                        "  ]\n"
+                        "}\n\n"
+                        "Rules: output ONLY the JSON object, nothing else."
+                    )},
+                ], max_tokens=150 + num_modules * 30)
 
                 course = Course(
                     title=outline.get("title", topic),
@@ -482,18 +538,34 @@ def generate():
                         "msg":     f"Generating module {mod_num}: {mod_title}…",
                     })
 
+                    quiz_shape = (
+                        '    {"question": "<question text>?", "options": ["<A>", "<B>", "<C>", "<D>"], "correct": <0-based index>}'
+                    )
+                    assign_shape = (
+                        ',\n  "assignment": {"title": "<assignment title>", "description": "<instructions, min 80 words>"}'
+                        if include_assign else ""
+                    )
                     mod_data = groq_json(client, [
-                        {"role": "system",  "content": "You are an expert course designer. Return only valid JSON."},
-                        {"role": "user",    "content": (
-                            f"Generate module {mod_num} titled \"{mod_title}\" for a {difficulty} course on '{topic}' in {language}.\n"
-                            f"The content field must contain at least {words_per_module} words, using ## headings, bullet points, examples, and code blocks where relevant.\n"
-                            f"Include exactly {quiz_count} quiz question(s), each with 4 options and a 0-based correct index.\n"
-                            "Return ONLY valid JSON:\n"
-                            '{"content":"full markdown content",'
-                            f'"quiz":[{{"question":"...?","options":["A","B","C","D"],"correct":0}}'
-                            + (f',{{"question":"...?","options":["A","B","C","D"],"correct":1}}' if quiz_count > 1 else '')
-                            + f'...({quiz_count} questions total)]'
-                            + assign_instruction + "}"
+                        {"role": "system", "content": (
+                            "You are an expert course designer. "
+                            "Always respond with valid JSON only — no markdown, no explanation, no extra text."
+                        )},
+                        {"role": "user", "content": (
+                            f"Generate the full content for Module {mod_num}: \"{mod_title}\".\n"
+                            f"Course topic: \"{topic}\" | Difficulty: {difficulty} | Language: {language}\n\n"
+                            f"Requirements:\n"
+                            f"- content: at least {words_per_module} words of rich educational material "
+                            f"using ## headings, bullet points, numbered lists, and code blocks where relevant.\n"
+                            f"- quiz: exactly {quiz_count} multiple-choice question(s), each with exactly 4 options "
+                            f"and a 0-based integer 'correct' index.\n"
+                            + ("- assignment: one practical assignment with a title and detailed description (min 80 words).\n" if include_assign else "")
+                            + "\nRespond with a single JSON object in this exact shape:\n"
+                            "{\n"
+                            '  "content": "<full markdown content>",\n'
+                            f'  "quiz": [\n{quiz_shape},\n    ... ({quiz_count} items total)\n  ]'
+                            + assign_shape
+                            + "\n}\n\n"
+                            "Rules: output ONLY the JSON object, nothing else."
                         )},
                     ], max_tokens=max_out)
 
