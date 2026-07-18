@@ -70,16 +70,37 @@ def extract_json(text: str) -> dict:
     )
 
 
-def groq_json(client, messages, max_tokens=2000):
-    """Call Groq and robustly parse the JSON response."""
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=0.6,
-    )
-    raw = resp.choices[0].message.content or ""
-    return extract_json(raw)
+def groq_json(client, messages, max_tokens=2000, retries=4):
+    """Call Groq and robustly parse the JSON response.
+    Retries on 429 rate-limit errors with exponential back-off."""
+    import time
+    from groq import RateLimitError
+
+    delay = 1.5
+    for attempt in range(retries):
+        try:
+            resp = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0.6,
+            )
+            raw = resp.choices[0].message.content or ""
+            return extract_json(raw)
+        except RateLimitError as e:
+            if attempt == retries - 1:
+                raise
+            # Parse retry-after from the error message if present (e.g. "try again in 610ms")
+            wait = delay
+            m = re.search(r'in (\d+(?:\.\d+)?)s', str(e))
+            if m:
+                wait = float(m.group(1)) + 0.5
+            else:
+                m = re.search(r'in (\d+)ms', str(e))
+                if m:
+                    wait = int(m.group(1)) / 1000 + 0.5
+            time.sleep(wait)
+            delay *= 2
 
 
 def sse(data: dict) -> str:
