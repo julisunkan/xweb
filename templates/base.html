@@ -18,22 +18,7 @@
 
 <!-- ── Top navigation bar ── -->
 <nav class="navbar">
-  <a class="navbar-brand" href="/">
-    <i class="fas fa-bolt"></i>
-    AI Tools
-  </a>
-  <div class="navbar-sep"></div>
-  <div class="nav-links">
-    <a class="nav-link {% if request.path.startswith('/coursegen') %}active{% endif %}" href="/coursegen/">
-      <i class="fas fa-graduation-cap"></i> Courses
-    </a>
-    <a class="nav-link {% if request.path.startswith('/emailnewsgen') %}active{% endif %}" href="/emailnewsgen/">
-      <i class="fas fa-envelope-open-text"></i> Newsletter
-    </a>
-    <a class="nav-link {% if request.path.startswith('/actgen') %}active{% endif %}" href="/actgen/">
-      <i class="fas fa-puzzle-piece"></i> Activity Book
-    </a>
-  </div>
+  {% block navbar_brand %}{% endblock %}
 </nav>
 
 <!-- ── Page content ── -->

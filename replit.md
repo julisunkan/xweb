@@ -16,6 +16,7 @@ Preferred communication style: Simple, everyday language.
 | `/coursegen` | Course Generator | Indigo `#6366f1` |
 | `/emailnewsgen` | Email Newsletter Generator | Emerald `#10b981` |
 | `/actgen` | Activity Book Generator | Amber `#f59e0b` |
+| `/admin` | Admin Panel | Red `#e11d48` |
 
 ## Architecture
 
@@ -50,7 +51,7 @@ requirements.txt
 
 ## Key Implementation Notes
 
-- **Groq key**: Stored in `Setting(key="GROQ_API_KEY")` — set via DB or direct SQL; no admin panel in this version.
+- **Groq key**: Stored in `Setting(key="GROQ_API_KEY")` — set via the Admin Panel at `/admin/` (Settings & API Keys tab).
 - **Course Generator**: Groq returns structured JSON → saved as Course → CourseModule → CourseQuiz + CourseAssignment rows. Quiz is interactive (select → check → score bar).
 - **Newsletter Generator**: Groq returns `{subject, content_html}` → iframe srcdoc preview → server-side HTML download.
 - **Activity Book**: 4 activities generated per book:

@@ -1,7 +1,47 @@
 {% extends "base.html" %}
 {% block title %}{{ course.title }}{% endblock %}
+{% block navbar_brand %}<span class="navbar-brand"><i class="fas fa-graduation-cap"></i> Course Generator</span>{% endblock %}
 {% block accent %}#6366f1{% endblock %}
 {% block accent_dark %}#4f46e5{% endblock %}
+
+{% block head %}
+<style>
+/* ── Export dropdown ── */
+.export-wrap { position: relative; display: inline-block; }
+.export-menu {
+  display: none;
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 50;
+  background: #141414; border: 1px solid #252525; border-radius: 10px;
+  min-width: 170px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+}
+.export-menu.show { display: block; }
+.export-menu a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; font-size: 13px; font-weight: 600;
+  color: #aaa; text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.export-menu a:hover { background: #1c1c1c; color: #fff; }
+.export-menu .divider { border-top: 1px solid #1e1e1e; margin: 4px 0; }
+.export-menu .label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: #333; padding: 8px 14px 4px;
+}
+
+/* ── Module card ── */
+.module-export-row {
+  display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .course-grid { grid-template-columns: 1fr !important; }
+  .mod-side    { display: none; }
+  .mod-tabs    { display: flex !important; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -17,23 +57,54 @@
         {{ course.created_at.strftime('%B %d, %Y') }}
       </p>
     </div>
-    <button class="btn btn-danger btn-sm" onclick="deleteCourse()">
-      <i class="fas fa-trash"></i> Delete
-    </button>
+    <!-- Course-level actions -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+      <div class="export-wrap" id="courseExportWrap">
+        <button class="btn btn-ghost-accent btn-sm" onclick="toggleMenu('courseExportMenu')">
+          <i class="fas fa-download"></i> Export Course <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+        </button>
+        <div class="export-menu" id="courseExportMenu">
+          <div class="label">Full Course</div>
+          <a href="/coursegen/{{ course.id }}/export/pdf">
+            <i class="fas fa-file-pdf" style="color:#f87171;"></i> Download PDF
+          </a>
+          <a href="/coursegen/{{ course.id }}/export/docx">
+            <i class="fas fa-file-word" style="color:#60a5fa;"></i> Download DOCX
+          </a>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteCourse()">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
   </div>
 </div>
 
-<!-- Module layout: sidebar + content -->
-<div style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;">
+<!-- Mobile: tab-based module selector (hidden on desktop) -->
+<div class="mod-tabs" style="display:none;overflow-x:auto;gap:6px;margin-bottom:16px;" id="modTabsBar">
+  {% for mod in course.modules %}
+  <button class="btn btn-sm btn-ghost {% if loop.first %}btn-ghost-accent{% endif %}"
+          style="flex-shrink:0;"
+          id="tab-{{ mod.number }}"
+          onclick="switchMod('mod-{{ mod.number }}', {{ mod.number }})">
+    {{ mod.number }}. {{ mod.title | truncate(20, True, '…') }}
+  </button>
+  {% endfor %}
+</div>
 
-  <!-- Sidebar: module list -->
-  <div class="sticky-col">
+<!-- Course layout: sidebar + content -->
+<div class="course-grid" style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;">
+
+  <!-- Sidebar -->
+  <div class="sticky-col mod-side">
     <div class="card" style="padding:12px;">
-      <p class="section-label" style="padding:0 6px;margin-bottom:10px;">Modules</p>
+      <p class="section-label" style="padding:0 6px;margin-bottom:10px;">
+        Modules <span class="badge badge-gray" style="margin-left:4px;">{{ course.total_modules }}</span>
+      </p>
       <div class="mod-nav" id="modNav">
         {% for mod in course.modules %}
         <button class="mod-nav-item {% if loop.first %}active{% endif %}"
-                onclick="switchMod('mod-{{ mod.number }}', this)">
+                onclick="switchMod('mod-{{ mod.number }}', {{ mod.number }})">
           <span class="mod-nav-num">{{ mod.number }}</span>
           <span style="flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
             {{ mod.title }}
@@ -44,31 +115,58 @@
     </div>
   </div>
 
-  <!-- Main content: active module -->
+  <!-- Main content -->
   <div>
     {% for mod in course.modules %}
-    <div class="mod-panel {% if loop.first %}active{% endif %}" id="mod-{{ mod.number }}"
+    <div class="mod-panel" id="mod-{{ mod.number }}"
          style="{% if not loop.first %}display:none;{% endif %}">
 
-      <!-- Content + right panel (quiz/assignment) -->
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;">
-
-        <!-- Module content -->
-        <div>
-          <div class="card">
-            <h2 class="text-white" style="font-size:19px;font-weight:800;margin-bottom:16px;">{{ mod.title }}</h2>
-            <div class="module-content" data-raw="{{ mod.content | e }}"></div>
+      <!-- Module header row -->
+      <div class="card" style="padding:14px 18px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:3px;">
+              Module {{ mod.number }}
+            </div>
+            <div style="font-size:17px;font-weight:800;color:#f0f0f0;">{{ mod.title }}</div>
+          </div>
+          <!-- Per-module export -->
+          <div class="export-wrap" id="modExportWrap-{{ mod.id }}">
+            <button class="btn btn-sm btn-ghost" onclick="toggleMenu('modExportMenu-{{ mod.id }}')">
+              <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+            </button>
+            <div class="export-menu" id="modExportMenu-{{ mod.id }}">
+              <div class="label">This Module</div>
+              <a href="/coursegen/{{ course.id }}/module/{{ mod.id }}/export/pdf">
+                <i class="fas fa-file-pdf" style="color:#f87171;"></i> Download PDF
+              </a>
+              <a href="/coursegen/{{ course.id }}/module/{{ mod.id }}/export/docx">
+                <i class="fas fa-file-word" style="color:#60a5fa;"></i> Download DOCX
+              </a>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Right: quiz + assignment -->
+      <!-- Content + quiz/assignment -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;" class="mod-inner-grid">
+
+        <!-- Content -->
+        <div class="card">
+          <div class="module-content" data-raw="{{ mod.content | e }}"></div>
+        </div>
+
+        <!-- Quiz + assignment -->
         <div>
           {% if mod.quizzes %}
           <div class="card">
-            <p class="section-label" style="margin-top:0;"><i class="fas fa-circle-question"></i> Quiz</p>
+            <p class="section-label" style="margin-top:0;">
+              <i class="fas fa-circle-question"></i> Quiz
+              <span class="badge badge-gray" style="margin-left:6px;">{{ mod.quizzes | length }} Q</span>
+            </p>
 
             {% for q in mod.quizzes %}
-            <div style="margin-bottom:14px;" data-qblock="{{ q.id }}">
+            <div style="margin-bottom:16px;" data-qblock="{{ q.id }}">
               <p class="text-sm text-white text-bold" style="margin-bottom:9px;line-height:1.5;">
                 {{ loop.index }}. {{ q.question }}
               </p>
@@ -78,7 +176,7 @@
                       data-opt="{{ loop.index0 }}"
                       data-correct="{{ 'true' if loop.index0 == q.correct_answer else 'false' }}"
                       onclick="selectOpt(this, {{ q.id }})">
-                <span class="quiz-letter">{{ ['A','B','C','D'][loop.index0] }}</span>
+                <span class="quiz-letter">{{ ['A','B','C','D','E','F','G','H'][loop.index0] }}</span>
                 {{ opt }}
               </button>
               {% endfor %}
@@ -86,7 +184,7 @@
             {% endfor %}
 
             <button class="btn btn-ghost-accent btn-sm w-full" id="check-{{ mod.id }}"
-                    onclick="checkQuiz('{{ mod.id }}')">
+                    onclick="checkQuiz('{{ mod.id }}', {{ mod.quizzes | length }})">
               <i class="fas fa-check-circle"></i> Check Answers
             </button>
 
@@ -112,24 +210,58 @@
           {% endif %}
         </div>
 
-      </div><!-- /grid -->
+      </div><!-- /inner grid -->
     </div><!-- /mod-panel -->
     {% endfor %}
-  </div>
+  </div><!-- /main -->
 
-</div><!-- /outer grid -->
+</div><!-- /course-grid -->
 
 {% endblock %}
 
 {% block scripts %}
 <script>
+// ── Export menus ───────────────────────────────────────────────────────────────
+function toggleMenu(id) {
+  const menu = document.getElementById(id);
+  const isOpen = menu.classList.contains('show');
+  document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+  if (!isOpen) menu.classList.add('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.export-wrap')) {
+    document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+  }
+});
+
 // ── Module switching ───────────────────────────────────────────────────────────
-function switchMod(id, btn) {
+function switchMod(panelId, num) {
   document.querySelectorAll('.mod-panel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.mod-nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).style.display = '';
-  btn.classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(b => {
+    b.classList.remove('btn-ghost-accent');
+    b.classList.add('btn-ghost');
+  });
+  const panel = document.getElementById(panelId);
+  if (panel) panel.style.display = '';
+  const navItem = document.querySelector(`.mod-nav-item:nth-child(${num})`);
+  // find by iteration since numbers may not be contiguous
+  document.querySelectorAll('.mod-nav-item').forEach(b => {
+    if (b.querySelector('.mod-nav-num')?.textContent == num) b.classList.add('active');
+  });
+  const tab = document.getElementById('tab-' + num);
+  if (tab) { tab.classList.add('btn-ghost-accent'); tab.classList.remove('btn-ghost'); }
 }
+
+// ── Responsive: mod-inner-grid ─────────────────────────────────────────────────
+function applyResponsive() {
+  const W = window.innerWidth;
+  document.querySelectorAll('.mod-inner-grid').forEach(g => {
+    g.style.gridTemplateColumns = W < 820 ? '1fr' : '1fr 340px';
+  });
+}
+window.addEventListener('resize', applyResponsive);
+applyResponsive();
 
 // ── Markdown renderer ──────────────────────────────────────────────────────────
 function renderMd(text) {
@@ -147,7 +279,6 @@ function renderMd(text) {
     .replace(/\n\n+/g, '\n')
     .replace(/^(?!<[huplo])(.+)$/gm, '<p>$1</p>');
 }
-
 document.querySelectorAll('.module-content').forEach(el => {
   el.innerHTML = renderMd(el.dataset.raw || '');
 });
@@ -160,20 +291,16 @@ function selectOpt(btn, qid) {
   _sel[qid] = btn.dataset.opt;
 }
 
-function checkQuiz(modId) {
-  // Find all qblocks within the active module panel
-  const panel = document.getElementById('mod-' + document.querySelector('.mod-nav-item.active').closest('.mod-panel') ? '' : '');
-  const blocks = document.querySelectorAll(`[data-qblock]`);
-  // Filter to those visible (inside active panel)
-  const activeBlocks = Array.from(blocks).filter(b => {
+function checkQuiz(modId, total) {
+  const blocks = Array.from(document.querySelectorAll('[data-qblock]')).filter(b => {
     const panel = b.closest('.mod-panel');
     return panel && panel.style.display !== 'none';
   });
 
   let correct = 0;
-  activeBlocks.forEach(block => {
-    const qid = block.dataset.qblock;
-    const opts = block.querySelectorAll('.quiz-option');
+  blocks.forEach(block => {
+    const qid     = block.dataset.qblock;
+    const opts    = block.querySelectorAll('.quiz-option');
     const userSel = _sel[qid];
     opts.forEach(opt => {
       opt.disabled = true;
@@ -186,10 +313,10 @@ function checkQuiz(modId) {
     }
   });
 
-  const total = activeBlocks.length;
-  const pct   = total ? Math.round(correct / total * 100) : 0;
+  const tot = blocks.length;
+  const pct = tot ? Math.round(correct / tot * 100) : 0;
 
-  document.getElementById('score-txt-' + modId).textContent = `${correct} / ${total} correct`;
+  document.getElementById('score-txt-' + modId).textContent = `${correct} / ${tot} correct`;
   document.getElementById('score-bar-' + modId).style.width = pct + '%';
   const badge = document.getElementById('score-badge-' + modId);
   badge.textContent = pct >= 70 ? '🎉 Passed!' : 'Keep practising';

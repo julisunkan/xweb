@@ -1,0 +1,15 @@
+[2026-07-18 18:48:46 +0000] [213] [INFO] Starting gunicorn 26.0.0
+[2026-07-18 18:48:46 +0000] [213] [INFO] Listening at:  (213)
+[2026-07-18 18:48:46 +0000] [213] [INFO] Using worker: sync
+[2026-07-18 18:48:46 +0000] [222] [INFO] Booting worker with pid: 222
+[2026-07-18 18:48:46 +0000] [222] [WARNING] Reloader is on. Use in development only!
+[2026-07-18 18:48:46 +0000] [213] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-07-18 18:58:53 +0000] [222] [INFO] Worker reloading: /home/runner/workspace/apps/coursegen/__init__.py modified
+[2026-07-18 18:58:53 +0000] [222] [INFO] Worker exiting (pid: 222)
+[2026-07-18 18:58:53 +0000] [522] [INFO] Booting worker with pid: 522
+[2026-07-18 18:58:53 +0000] [213] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-18 18:58:53 +0000] [522] [WARNING] Reloader is on. Use in development only!
+[2026-07-18 19:00:44 +0000] [213] [INFO] Handling signal: term
+[2026-07-18 19:00:44 +0000] [522] [INFO] Worker exiting (pid: 522)
+[2026-07-18 19:00:44 +0000] [213] [INFO] Shutting down: Master

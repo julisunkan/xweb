@@ -1,49 +1,104 @@
 {% extends "base.html" %}
 {% block title %}Activity Book Generator{% endblock %}
+{% block navbar_brand %}<span class="navbar-brand"><i class="fas fa-puzzle-piece"></i> Activity Book Generator</span>{% endblock %}
 {% block accent %}#f59e0b{% endblock %}
 {% block accent_dark %}#d97706{% endblock %}
 
+{% block head %}
+<style>
+/* Activity feature cards */
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+.activity-feat {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid #1e1e1e; background: #0f0f0f;
+  transition: transform .2s, border-color .2s;
+}
+.activity-feat:hover { transform: translateY(-2px); }
+.activity-feat .af-icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.activity-feat .af-name { font-size: 12.5px; font-weight: 700; color: #888; }
+
+/* Difficulty selector */
+.diff-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.diff-btn {
+  padding: 10px 8px; border-radius: 10px; border: 1.5px solid #1e1e1e;
+  background: #141414; color: #444; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; text-align: center; transition: all .18s; font-family: inherit;
+}
+.diff-btn.selected { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb,var(--accent) 10%,transparent); }
+.diff-btn:hover:not(.selected) { border-color: #333; color: #999; }
+
+/* Age group pills */
+.age-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.age-pill {
+  padding: 6px 13px; border-radius: 20px; border: 1.5px solid #1e1e1e;
+  background: #141414; color: #444; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: all .18s; font-family: inherit;
+}
+.age-pill.selected { border-color: var(--brown); color: var(--brown); background: rgba(180,83,9,.1); }
+.age-pill:hover:not(.selected) { border-color: #333; color: #999; }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="page-header">
+<div class="page-header anim-up">
   <h1><i class="fas fa-puzzle-piece"></i> Activity Book Generator</h1>
-  <p class="subtitle">Custom-themed word searches, Sudoku, crosswords &amp; trivia</p>
+  <p class="subtitle">Custom-themed word searches, Sudoku, crosswords &amp; trivia — all in one book</p>
 </div>
+
+<div class="color-bar"></div>
 
 <div class="split">
 
   <!-- ── Left: form ── -->
   <div class="sticky-col">
-    <div class="card">
-      <p class="section-label" style="margin-top:0;">Generate activity book</p>
+    <div class="card card-glow anim-up d1">
+      <p class="section-label" style="margin-top:0;">
+        <i class="fas fa-wand-magic-sparkles" style="color:var(--yellow);margin-right:6px;"></i>
+        Generate Activity Book
+      </p>
 
       <div class="form-group">
         <label class="form-label">Theme</label>
         <input class="input" id="theme"
-          placeholder="e.g. Space, Animals, History, Ocean, Sports, Science…">
+          placeholder="e.g. Space, Animals, History, Ocean, Sports…">
       </div>
 
-      <div class="input-row">
-        <div class="form-group mb-0">
-          <label class="form-label">Difficulty</label>
-          <select class="select" id="difficulty">
-            <option>Easy</option>
-            <option selected>Medium</option>
-            <option>Hard</option>
-          </select>
-        </div>
-        <div class="form-group mb-0">
-          <label class="form-label">Age Group</label>
-          <select class="select" id="age_group">
-            <option>Kids 6-8</option>
-            <option selected>Kids 9-12</option>
-            <option>Teens</option>
-            <option>Adults</option>
-          </select>
+      <div class="form-group">
+        <label class="form-label">Difficulty</label>
+        <div class="diff-grid" id="diffGrid">
+          <button class="diff-btn" data-val="Easy"   onclick="selectDiff(this)">
+            <i class="fas fa-seedling" style="display:block;font-size:16px;margin-bottom:4px;color:var(--green);"></i> Easy
+          </button>
+          <button class="diff-btn selected" data-val="Medium" onclick="selectDiff(this)">
+            <i class="fas fa-fire" style="display:block;font-size:16px;margin-bottom:4px;color:var(--yellow);"></i> Medium
+          </button>
+          <button class="diff-btn" data-val="Hard"   onclick="selectDiff(this)">
+            <i class="fas fa-bolt" style="display:block;font-size:16px;margin-bottom:4px;color:var(--red);"></i> Hard
+          </button>
         </div>
       </div>
 
-      <button class="btn btn-primary" id="genBtn" onclick="generate()" style="margin-top:16px;">
+      <div class="form-group mb-0">
+        <label class="form-label">Age Group</label>
+        <div class="age-pills" id="agePills">
+          <button class="age-pill" data-val="Kids 6-8"  onclick="selectAge(this)">Kids 6–8</button>
+          <button class="age-pill selected" data-val="Kids 9-12" onclick="selectAge(this)">Kids 9–12</button>
+          <button class="age-pill" data-val="Teens"     onclick="selectAge(this)">Teens</button>
+          <button class="age-pill" data-val="Adults"    onclick="selectAge(this)">Adults</button>
+        </div>
+      </div>
+
+      <button class="btn btn-warning" id="genBtn" onclick="generate()" style="margin-top:20px;">
         <i class="fas fa-wand-magic-sparkles"></i> Generate Activity Book
       </button>
     </div>
@@ -56,26 +111,43 @@
       </div>
     </div>
 
-    <!-- Includes info -->
-    <div class="card" style="margin-top:0;">
+    <!-- What's included -->
+    <div class="card anim-up d2" style="margin-top:0;">
       <p class="section-label" style="margin-top:0;">What's included</p>
-      <div class="chips">
-        <span class="chip"><i class="fas fa-search" style="color:var(--accent);"></i> Word Search</span>
-        <span class="chip"><i class="fas fa-th" style="color:var(--accent);"></i> Sudoku</span>
-        <span class="chip"><i class="fas fa-crosshairs" style="color:var(--accent);"></i> Crossword</span>
-        <span class="chip"><i class="fas fa-question-circle" style="color:var(--accent);"></i> Trivia</span>
+      <div class="activity-grid">
+        <div class="activity-feat">
+          <div class="af-icon" style="background:rgba(59,130,246,.12);color:var(--blue);"><i class="fas fa-search"></i></div>
+          <div><div class="af-name">Word Search</div></div>
+        </div>
+        <div class="activity-feat">
+          <div class="af-icon" style="background:rgba(239,68,68,.12);color:var(--red);"><i class="fas fa-th"></i></div>
+          <div><div class="af-name">Sudoku</div></div>
+        </div>
+        <div class="activity-feat">
+          <div class="af-icon" style="background:rgba(34,197,94,.12);color:var(--green);"><i class="fas fa-crosshairs"></i></div>
+          <div><div class="af-name">Crossword</div></div>
+        </div>
+        <div class="activity-feat">
+          <div class="af-icon" style="background:rgba(245,158,11,.12);color:var(--yellow);"><i class="fas fa-question-circle"></i></div>
+          <div><div class="af-name">Trivia Quiz</div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ── Right: history ── -->
-  <div>
-    <p class="section-label">Your Activity Books</p>
+  <div class="anim-up d2">
+    <p class="section-label">
+      <i class="fas fa-book-open" style="color:var(--brown);margin-right:6px;"></i>
+      Your Activity Books
+    </p>
 
     {% if books %}
       {% for book in books %}
       <div class="history-item" onclick="window.location='/actgen/{{ book.id }}'">
-        <div class="history-icon"><i class="fas fa-puzzle-piece"></i></div>
+        <div class="history-icon" style="background:rgba(245,158,11,.1);color:var(--yellow);">
+          <i class="fas fa-puzzle-piece"></i>
+        </div>
         <div class="history-meta">
           <div class="title">{{ book.theme }}</div>
           <div class="sub">
@@ -100,6 +172,20 @@
 
 {% block scripts %}
 <script>
+let _difficulty = 'Medium', _ageGroup = 'Kids 9-12';
+
+function selectDiff(el) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  _difficulty = el.dataset.val;
+}
+
+function selectAge(el) {
+  document.querySelectorAll('.age-pill').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  _ageGroup = el.dataset.val;
+}
+
 async function generate() {
   const theme = document.getElementById('theme').value.trim();
   if (!theme) { showMsg('Please enter a theme.', 'warn'); return; }
@@ -113,11 +199,7 @@ async function generate() {
     const r = await fetch('/actgen/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        theme,
-        difficulty: document.getElementById('difficulty').value,
-        age_group:  document.getElementById('age_group').value,
-      })
+      body: JSON.stringify({ theme, difficulty: _difficulty, age_group: _ageGroup })
     });
     const d = await r.json();
     if (d.success) {

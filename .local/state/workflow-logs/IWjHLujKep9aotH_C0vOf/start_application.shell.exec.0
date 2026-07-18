@@ -1,0 +1,6 @@
+[2026-07-18 19:17:28 +0000] [1478] [INFO] Starting gunicorn 26.0.0
+[2026-07-18 19:17:28 +0000] [1478] [INFO] Listening at:  (1478)
+[2026-07-18 19:17:28 +0000] [1478] [INFO] Using worker: sync
+[2026-07-18 19:17:28 +0000] [1482] [INFO] Booting worker with pid: 1482
+[2026-07-18 19:17:28 +0000] [1482] [WARNING] Reloader is on. Use in development only!
+[2026-07-18 19:17:28 +0000] [1478] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
