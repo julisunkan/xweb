@@ -16,41 +16,6 @@
 </head>
 <body>
 
-<!-- ── Top navigation bar ── -->
-<nav class="navbar">
-  {% block navbar_brand %}{% endblock %}
-  <div class="navbar-sep hide-mobile"></div>
-  <div class="nav-links">
-    <a href="/" class="nav-link {% block nav_home %}{% endblock %}">
-      <i class="fas fa-home"></i><span>Home</span>
-    </a>
-    <a href="/coursegen/" class="nav-link nav-link-blue {% block nav_course %}{% endblock %}">
-      <i class="fas fa-graduation-cap"></i><span>Courses</span>
-    </a>
-    <a href="/emailnewsgen/" class="nav-link nav-link-green {% block nav_newsletter %}{% endblock %}">
-      <i class="fas fa-envelope-open-text"></i><span>Newsletter</span>
-    </a>
-    <a href="/actgen/" class="nav-link nav-link-yellow {% block nav_actgen %}{% endblock %}">
-      <i class="fas fa-puzzle-piece"></i><span>Activity Book</span>
-    </a>
-    <a href="/admin/" class="nav-link nav-link-red {% block nav_admin %}{% endblock %}">
-      <i class="fas fa-shield-halved"></i><span>Admin</span>
-    </a>
-  </div>
-  <button class="nav-hamburger" onclick="toggleMobileMenu()" id="hamburgerBtn" aria-label="Menu">
-    <i class="fas fa-bars" id="hamburgerIcon"></i>
-  </button>
-</nav>
-
-<!-- ── Mobile slide-down menu ── -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="/" class="nav-link" onclick="closeMobileMenu()"><i class="fas fa-home"></i> Home</a>
-  <a href="/coursegen/" class="nav-link nav-link-blue" onclick="closeMobileMenu()"><i class="fas fa-graduation-cap"></i> Course Generator</a>
-  <a href="/emailnewsgen/" class="nav-link nav-link-green" onclick="closeMobileMenu()"><i class="fas fa-envelope-open-text"></i> Newsletter Generator</a>
-  <a href="/actgen/" class="nav-link nav-link-yellow" onclick="closeMobileMenu()"><i class="fas fa-puzzle-piece"></i> Activity Book</a>
-  <a href="/admin/" class="nav-link nav-link-red" onclick="closeMobileMenu()"><i class="fas fa-shield-halved"></i> Admin Panel</a>
-</div>
-
 <!-- ── Page content ── -->
 <div class="page-wrap">
 
@@ -80,26 +45,6 @@ function hideMsg() {
   clearTimeout(_msgTimer);
 }
 
-// Mobile menu
-function toggleMobileMenu() {
-  const menu = document.getElementById('mobileMenu');
-  const icon = document.getElementById('hamburgerIcon');
-  const isOpen = menu.classList.contains('open');
-  menu.classList.toggle('open', !isOpen);
-  icon.className = isOpen ? 'fas fa-bars' : 'fas fa-times';
-}
-function closeMobileMenu() {
-  document.getElementById('mobileMenu').classList.remove('open');
-  document.getElementById('hamburgerIcon').className = 'fas fa-bars';
-}
-// Close menu on outside click
-document.addEventListener('click', e => {
-  const menu = document.getElementById('mobileMenu');
-  const btn  = document.getElementById('hamburgerBtn');
-  if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
-    closeMobileMenu();
-  }
-});
 </script>
 {% block scripts %}{% endblock %}
 </body>
