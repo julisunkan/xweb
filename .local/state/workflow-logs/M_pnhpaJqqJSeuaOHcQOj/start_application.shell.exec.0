@@ -1,0 +1,34 @@
+[2026-07-17 19:51:11 +0000] [4229] [INFO] Starting gunicorn 26.0.0
+[2026-07-17 19:51:11 +0000] [4229] [INFO] Listening at:  (4229)
+[2026-07-17 19:51:11 +0000] [4229] [INFO] Using worker: sync
+[2026-07-17 19:51:11 +0000] [4239] [INFO] Booting worker with pid: 4239
+[2026-07-17 19:51:11 +0000] [4239] [WARNING] Reloader is on. Use in development only!
+[2026-07-17 19:51:11 +0000] [4229] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-17 19:51:21 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:24 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:24 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:24 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:25 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:25 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:26 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:26 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:27 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:27 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:27 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:33 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:33 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:34 +0000] [4239] [INFO] Worker reloading: /home/runner/workspace/apps/webscreen/__init__.py modified
+[2026-07-17 19:51:34 +0000] [4239] [INFO] Worker exiting (pid: 4239)
+[2026-07-17 19:51:34 +0000] [4275] [INFO] Booting worker with pid: 4275
+[2026-07-17 19:51:34 +0000] [4229] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-17 19:51:34 +0000] [4275] [WARNING] Reloader is on. Use in development only!
+[2026-07-17 19:51:35 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:51:35 +0000] [4229] [INFO] Handling signal: winch
+[2026-07-17 19:53:09 +0000] [4275] [INFO] Worker reloading: /home/runner/workspace/apps/webscreen/__init__.py modified
+[2026-07-17 19:53:09 +0000] [4275] [INFO] Worker exiting (pid: 4275)
+[2026-07-17 19:53:09 +0000] [4783] [INFO] Booting worker with pid: 4783
+[2026-07-17 19:53:09 +0000] [4229] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-17 19:53:09 +0000] [4783] [WARNING] Reloader is on. Use in development only!
+[2026-07-17 19:53:20 +0000] [4229] [INFO] Handling signal: term
+[2026-07-17 19:53:20 +0000] [4783] [INFO] Worker exiting (pid: 4783)
+[2026-07-17 19:53:21 +0000] [4229] [INFO] Shutting down: Master

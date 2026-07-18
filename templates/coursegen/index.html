@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Course Generator{% endblock %}
+{% block accent %}#6366f1{% endblock %}
+{% block accent_dark %}#4f46e5{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="fas fa-graduation-cap"></i> Course Generator</h1>
+  <p class="subtitle">AI-powered courses with module content, quizzes &amp; assignments</p>
+</div>
+
+<div class="split">
+
+  <!-- ── Left: form ── -->
+  <div class="sticky-col">
+    <div class="card">
+      <p class="section-label" style="margin-top:0;">Generate a new course</p>
+
+      <div class="form-group">
+        <label class="form-label">Topic</label>
+        <textarea class="textarea" id="topic" rows="3"
+          placeholder="e.g. Introduction to Machine Learning, Python for Beginners…"></textarea>
+      </div>
+
+      <div class="input-row">
+        <div class="form-group mb-0">
+          <label class="form-label">Modules</label>
+          <select class="select" id="num_modules">
+            <option value="2">2 Modules</option>
+            <option value="3" selected>3 Modules</option>
+            <option value="4">4 Modules</option>
+            <option value="5">5 Modules</option>
+          </select>
+        </div>
+        <div class="form-group mb-0">
+          <label class="form-label">Difficulty</label>
+          <select class="select" id="difficulty">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label class="form-label">Language</label>
+        <input class="input" id="language" placeholder="English" value="English">
+      </div>
+
+      <button class="btn btn-primary" id="generateBtn" onclick="generate()">
+        <i class="fas fa-wand-magic-sparkles"></i> Generate Course
+      </button>
+    </div>
+
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <div>
+        <div class="loader-text" style="font-weight:700;color:#888;">Generating with AI…</div>
+        <div class="loader-text" style="font-size:12px;margin-top:2px;">This may take 15–30 seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: history ── -->
+  <div>
+    <p class="section-label">Your Courses</p>
+
+    {% if courses %}
+      {% for course in courses %}
+      <div class="history-item" onclick="window.location='/coursegen/{{ course.id }}'">
+        <div class="history-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="history-meta">
+          <div class="title">{{ course.title }}</div>
+          <div class="sub">
+            {{ course.difficulty }} &middot; {{ course.total_modules }} modules &middot;
+            {{ course.language }} &middot; {{ course.created_at.strftime('%b %d, %Y') }}
+          </div>
+        </div>
+        <i class="fas fa-chevron-right history-arrow"></i>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="icon"><i class="fas fa-book-open"></i></div>
+        <p>No courses yet. Generate your first one!</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showMsg('Please enter a topic.', 'warn'); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  document.getElementById('loader').classList.add('show');
+  hideMsg();
+
+  try {
+    const r = await fetch('/coursegen/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic,
+        num_modules: document.getElementById('num_modules').value,
+        difficulty:  document.getElementById('difficulty').value,
+        language:    document.getElementById('language').value || 'English',
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      window.location = '/coursegen/' + d.id;
+    } else {
+      showMsg(d.error || 'Generation failed.', 'error');
+      btn.disabled = false;
+      document.getElementById('loader').classList.remove('show');
+    }
+  } catch(e) {
+    showMsg('Network error. Please try again.', 'error');
+    btn.disabled = false;
+    document.getElementById('loader').classList.remove('show');
+  }
+}
+</script>
+{% endblock %}

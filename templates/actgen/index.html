@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Activity Book Generator{% endblock %}
+{% block accent %}#f59e0b{% endblock %}
+{% block accent_dark %}#d97706{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="fas fa-puzzle-piece"></i> Activity Book Generator</h1>
+  <p class="subtitle">Custom-themed word searches, Sudoku, crosswords &amp; trivia</p>
+</div>
+
+<div class="split">
+
+  <!-- ── Left: form ── -->
+  <div class="sticky-col">
+    <div class="card">
+      <p class="section-label" style="margin-top:0;">Generate activity book</p>
+
+      <div class="form-group">
+        <label class="form-label">Theme</label>
+        <input class="input" id="theme"
+          placeholder="e.g. Space, Animals, History, Ocean, Sports, Science…">
+      </div>
+
+      <div class="input-row">
+        <div class="form-group mb-0">
+          <label class="form-label">Difficulty</label>
+          <select class="select" id="difficulty">
+            <option>Easy</option>
+            <option selected>Medium</option>
+            <option>Hard</option>
+          </select>
+        </div>
+        <div class="form-group mb-0">
+          <label class="form-label">Age Group</label>
+          <select class="select" id="age_group">
+            <option>Kids 6-8</option>
+            <option selected>Kids 9-12</option>
+            <option>Teens</option>
+            <option>Adults</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="genBtn" onclick="generate()" style="margin-top:16px;">
+        <i class="fas fa-wand-magic-sparkles"></i> Generate Activity Book
+      </button>
+    </div>
+
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <div>
+        <div class="loader-text" style="font-weight:700;color:#888;">Building your activity book…</div>
+        <div class="loader-text" style="font-size:12px;margin-top:2px;">Generating 4 activities with AI</div>
+      </div>
+    </div>
+
+    <!-- Includes info -->
+    <div class="card" style="margin-top:0;">
+      <p class="section-label" style="margin-top:0;">What's included</p>
+      <div class="chips">
+        <span class="chip"><i class="fas fa-search" style="color:var(--accent);"></i> Word Search</span>
+        <span class="chip"><i class="fas fa-th" style="color:var(--accent);"></i> Sudoku</span>
+        <span class="chip"><i class="fas fa-crosshairs" style="color:var(--accent);"></i> Crossword</span>
+        <span class="chip"><i class="fas fa-question-circle" style="color:var(--accent);"></i> Trivia</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: history ── -->
+  <div>
+    <p class="section-label">Your Activity Books</p>
+
+    {% if books %}
+      {% for book in books %}
+      <div class="history-item" onclick="window.location='/actgen/{{ book.id }}'">
+        <div class="history-icon"><i class="fas fa-puzzle-piece"></i></div>
+        <div class="history-meta">
+          <div class="title">{{ book.theme }}</div>
+          <div class="sub">
+            {{ book.difficulty }} &middot; {{ book.age_group }} &middot;
+            {{ book.created_at.strftime('%b %d, %Y') }}
+          </div>
+        </div>
+        <i class="fas fa-chevron-right history-arrow"></i>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="icon"><i class="fas fa-book"></i></div>
+        <p>No activity books yet. Generate your first one!</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function generate() {
+  const theme = document.getElementById('theme').value.trim();
+  if (!theme) { showMsg('Please enter a theme.', 'warn'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  document.getElementById('loader').classList.add('show');
+  hideMsg();
+
+  try {
+    const r = await fetch('/actgen/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        theme,
+        difficulty: document.getElementById('difficulty').value,
+        age_group:  document.getElementById('age_group').value,
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      window.location = '/actgen/' + d.id;
+    } else {
+      showMsg(d.error || 'Generation failed.', 'error');
+      btn.disabled = false;
+      document.getElementById('loader').classList.remove('show');
+    }
+  } catch(e) {
+    showMsg('Network error. Please try again.', 'error');
+    btn.disabled = false;
+    document.getElementById('loader').classList.remove('show');
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+[2026-07-18 07:20:20 +0000] [215] [INFO] Starting gunicorn 26.0.0
+[2026-07-18 07:20:20 +0000] [215] [INFO] Listening at:  (215)
+[2026-07-18 07:20:20 +0000] [215] [INFO] Using worker: sync
+[2026-07-18 07:20:20 +0000] [238] [INFO] Booting worker with pid: 238
+[2026-07-18 07:20:20 +0000] [238] [WARNING] Reloader is on. Use in development only!
+[2026-07-18 07:20:20 +0000] [215] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-18 12:54:44 +0000] [238] [INFO] Worker reloading: /home/runner/workspace/app.py modified
+[2026-07-18 12:54:44 +0000] [238] [INFO] Worker exiting (pid: 238)
+[2026-07-18 12:54:44 +0000] [593] [INFO] Booting worker with pid: 593
+[2026-07-18 12:54:44 +0000] [215] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-18 12:54:44 +0000] [593] [WARNING] Reloader is on. Use in development only!
+[2026-07-18 12:54:44 +0000] [593] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/arbiter.py", line 713, in spawn_worker
+    worker.init_process()
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+    self.load_wsgi()
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+    self.wsgi = self.app.wsgi()
+                ^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+                    ^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/util.py", line 411, in import_app
+    mod = importlib.import_module(module)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/6334pjf6w2q623rgvwi499qaiym1p6yv-python3-3.11.14/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+No module named 'main'
+[2026-07-18 12:54:44 +0000] [593] [INFO] Worker exiting (pid: 593)
+[2026-07-18 12:54:44 +0000] [215] [ERROR] Worker (pid:593) exited with code 3.
+[2026-07-18 12:54:44 +0000] [215] [ERROR] Shutting down: Master
+[2026-07-18 12:54:44 +0000] [215] [ERROR] Reason: Worker failed to boot.

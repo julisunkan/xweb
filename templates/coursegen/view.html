@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block accent %}#6366f1{% endblock %}
+{% block accent_dark %}#4f46e5{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <a href="/coursegen/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+  <div class="page-header-row">
+    <div>
+      <h1><i class="fas fa-graduation-cap"></i> {{ course.title }}</h1>
+      <p class="subtitle" style="margin-top:6px;">
+        <span class="badge badge-accent" style="margin-right:8px;">{{ course.difficulty }}</span>
+        {{ course.total_modules }} Modules &middot; {{ course.language }} &middot;
+        {{ course.created_at.strftime('%B %d, %Y') }}
+      </p>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="deleteCourse()">
+      <i class="fas fa-trash"></i> Delete
+    </button>
+  </div>
+</div>
+
+<!-- Module layout: sidebar + content -->
+<div style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;">
+
+  <!-- Sidebar: module list -->
+  <div class="sticky-col">
+    <div class="card" style="padding:12px;">
+      <p class="section-label" style="padding:0 6px;margin-bottom:10px;">Modules</p>
+      <div class="mod-nav" id="modNav">
+        {% for mod in course.modules %}
+        <button class="mod-nav-item {% if loop.first %}active{% endif %}"
+                onclick="switchMod('mod-{{ mod.number }}', this)">
+          <span class="mod-nav-num">{{ mod.number }}</span>
+          <span style="flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ mod.title }}
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content: active module -->
+  <div>
+    {% for mod in course.modules %}
+    <div class="mod-panel {% if loop.first %}active{% endif %}" id="mod-{{ mod.number }}"
+         style="{% if not loop.first %}display:none;{% endif %}">
+
+      <!-- Content + right panel (quiz/assignment) -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;">
+
+        <!-- Module content -->
+        <div>
+          <div class="card">
+            <h2 class="text-white" style="font-size:19px;font-weight:800;margin-bottom:16px;">{{ mod.title }}</h2>
+            <div class="module-content" data-raw="{{ mod.content | e }}"></div>
+          </div>
+        </div>
+
+        <!-- Right: quiz + assignment -->
+        <div>
+          {% if mod.quizzes %}
+          <div class="card">
+            <p class="section-label" style="margin-top:0;"><i class="fas fa-circle-question"></i> Quiz</p>
+
+            {% for q in mod.quizzes %}
+            <div style="margin-bottom:14px;" data-qblock="{{ q.id }}">
+              <p class="text-sm text-white text-bold" style="margin-bottom:9px;line-height:1.5;">
+                {{ loop.index }}. {{ q.question }}
+              </p>
+              {% for opt in q.options | from_json %}
+              <button class="quiz-option"
+                      data-qid="{{ q.id }}"
+                      data-opt="{{ loop.index0 }}"
+                      data-correct="{{ 'true' if loop.index0 == q.correct_answer else 'false' }}"
+                      onclick="selectOpt(this, {{ q.id }})">
+                <span class="quiz-letter">{{ ['A','B','C','D'][loop.index0] }}</span>
+                {{ opt }}
+              </button>
+              {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button class="btn btn-ghost-accent btn-sm w-full" id="check-{{ mod.id }}"
+                    onclick="checkQuiz('{{ mod.id }}')">
+              <i class="fas fa-check-circle"></i> Check Answers
+            </button>
+
+            <div id="score-{{ mod.id }}" class="hidden" style="margin-top:14px;">
+              <div class="flex items-center justify-between" style="margin-bottom:8px;">
+                <span class="text-sm text-bold text-white" id="score-txt-{{ mod.id }}"></span>
+                <span class="badge" id="score-badge-{{ mod.id }}"></span>
+              </div>
+              <div class="score-bar-wrap">
+                <div class="score-bar-fill" id="score-bar-{{ mod.id }}" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if mod.assignments %}
+          {% set asgn = mod.assignments[0] %}
+          <div class="card card-accent">
+            <p class="section-label" style="margin-top:0;"><i class="fas fa-file-pen"></i> Assignment</p>
+            <p class="text-sm text-white text-bold" style="margin-bottom:8px;">{{ asgn.title }}</p>
+            <p class="text-sm text-muted" style="line-height:1.65;">{{ asgn.description }}</p>
+          </div>
+          {% endif %}
+        </div>
+
+      </div><!-- /grid -->
+    </div><!-- /mod-panel -->
+    {% endfor %}
+  </div>
+
+</div><!-- /outer grid -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Module switching ───────────────────────────────────────────────────────────
+function switchMod(id, btn) {
+  document.querySelectorAll('.mod-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.mod-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).style.display = '';
+  btn.classList.add('active');
+}
+
+// ── Markdown renderer ──────────────────────────────────────────────────────────
+function renderMd(text) {
+  return text
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`([^`\n]+)`/g,              '<code>$1</code>')
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm,  '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,   '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,    '<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,    '<em>$1</em>')
+    .replace(/^[\-\*\+] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/\n\n+/g, '\n')
+    .replace(/^(?!<[huplo])(.+)$/gm, '<p>$1</p>');
+}
+
+document.querySelectorAll('.module-content').forEach(el => {
+  el.innerHTML = renderMd(el.dataset.raw || '');
+});
+
+// ── Quiz ───────────────────────────────────────────────────────────────────────
+const _sel = {};
+function selectOpt(btn, qid) {
+  document.querySelectorAll(`.quiz-option[data-qid="${qid}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _sel[qid] = btn.dataset.opt;
+}
+
+function checkQuiz(modId) {
+  // Find all qblocks within the active module panel
+  const panel = document.getElementById('mod-' + document.querySelector('.mod-nav-item.active').closest('.mod-panel') ? '' : '');
+  const blocks = document.querySelectorAll(`[data-qblock]`);
+  // Filter to those visible (inside active panel)
+  const activeBlocks = Array.from(blocks).filter(b => {
+    const panel = b.closest('.mod-panel');
+    return panel && panel.style.display !== 'none';
+  });
+
+  let correct = 0;
+  activeBlocks.forEach(block => {
+    const qid = block.dataset.qblock;
+    const opts = block.querySelectorAll('.quiz-option');
+    const userSel = _sel[qid];
+    opts.forEach(opt => {
+      opt.disabled = true;
+      if (opt.dataset.correct === 'true') opt.classList.add('correct');
+      else if (opt.dataset.opt === userSel) opt.classList.add('wrong');
+    });
+    if (userSel !== undefined) {
+      const selBtn = block.querySelector(`.quiz-option[data-opt="${userSel}"]`);
+      if (selBtn && selBtn.dataset.correct === 'true') correct++;
+    }
+  });
+
+  const total = activeBlocks.length;
+  const pct   = total ? Math.round(correct / total * 100) : 0;
+
+  document.getElementById('score-txt-' + modId).textContent = `${correct} / ${total} correct`;
+  document.getElementById('score-bar-' + modId).style.width = pct + '%';
+  const badge = document.getElementById('score-badge-' + modId);
+  badge.textContent = pct >= 70 ? '🎉 Passed!' : 'Keep practising';
+  badge.className   = 'badge ' + (pct >= 70 ? 'badge-green' : 'badge-yellow');
+  document.getElementById('score-' + modId).classList.remove('hidden');
+  document.getElementById('check-' + modId).style.display = 'none';
+}
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+async function deleteCourse() {
+  if (!confirm('Delete this course permanently?')) return;
+  const r = await fetch('/coursegen/{{ course.id }}/delete', { method: 'POST' });
+  const d = await r.json();
+  if (d.success) window.location = '/coursegen/';
+  else showMsg(d.error || 'Delete failed.', 'error');
+}
+</script>
+{% endblock %}

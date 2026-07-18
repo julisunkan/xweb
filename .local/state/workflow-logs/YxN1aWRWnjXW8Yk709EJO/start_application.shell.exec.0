@@ -1,0 +1,25 @@
+[2026-07-17 19:37:41 +0000] [2485] [INFO] Starting gunicorn 26.0.0
+[2026-07-17 19:37:41 +0000] [2485] [INFO] Listening at:  (2485)
+[2026-07-17 19:37:41 +0000] [2485] [INFO] Using worker: sync
+[2026-07-17 19:37:41 +0000] [2495] [INFO] Booting worker with pid: 2495
+[2026-07-17 19:37:41 +0000] [2495] [WARNING] Reloader is on. Use in development only!
+[2026-07-17 19:37:41 +0000] [2485] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-17 19:37:43 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:44 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:44 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:44 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:44 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:44 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:45 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:45 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:45 +0000] [2485] [INFO] Handling signal: winch
+[2026-07-17 19:37:46 +0000] [2485] [INFO] Handling signal: winch
+DEBUG:asyncio:Using selector: EpollSelector
+[2026-07-17 19:42:20 +0000] [2495] [INFO] Worker reloading: /home/runner/workspace/apps/webscreen/__init__.py modified
+[2026-07-17 19:42:20 +0000] [2495] [INFO] Worker exiting (pid: 2495)
+[2026-07-17 19:42:20 +0000] [2893] [INFO] Booting worker with pid: 2893
+[2026-07-17 19:42:20 +0000] [2485] [INFO] Control socket listening at /home/runner/.gunicorn/gunicorn.ctl
+[2026-07-17 19:42:20 +0000] [2893] [WARNING] Reloader is on. Use in development only!
+[2026-07-17 19:42:26 +0000] [2485] [INFO] Handling signal: term
+[2026-07-17 19:42:26 +0000] [2893] [INFO] Worker exiting (pid: 2893)
+[2026-07-17 19:42:26 +0000] [2485] [INFO] Shutting down: Master

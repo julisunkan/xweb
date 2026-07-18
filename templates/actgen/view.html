@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block title %}{{ book.theme }} Activity Book{% endblock %}
+{% block accent %}#f59e0b{% endblock %}
+{% block accent_dark %}#d97706{% endblock %}
+
+{% block head %}
+<style>
+/* ── Word search ── */
+.ws-table { border-collapse: collapse; }
+.ws-table td {
+  width: 28px; height: 28px;
+  text-align: center; vertical-align: middle;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #ccc; border: 1px solid #1c1c1c; cursor: default;
+}
+.ws-table td.found { background: rgba(245,158,11,.18); color: #f59e0b; }
+
+/* ── Sudoku ── */
+.sdk-table { border-collapse: collapse; }
+.sdk-table td {
+  width: 36px; height: 36px;
+  text-align: center; vertical-align: middle;
+  font-size: 16px; font-weight: 700;
+  font-family: 'Courier New', monospace;
+  border: 1px solid #252525;
+}
+.sdk-table td.given { color: #eee; }
+.sdk-table td.empty { color: #282828; }
+.sdk-table .br { border-right: 2px solid #555; }
+.sdk-table .bb { border-bottom: 2px solid #555; }
+
+/* ── Crossword ── */
+.cw-table { border-collapse: collapse; }
+.cw-table td {
+  width: 28px; height: 28px;
+  border: 1px solid #252525;
+  text-align: center; vertical-align: middle;
+  font-size: 13px; font-weight: 700;
+  color: #eee; background: #161616;
+  position: relative;
+  font-family: 'Courier New', monospace;
+}
+.cw-table td.blk { background: #000; border-color: #000; }
+.cw-num {
+  position: absolute; top: 1px; left: 1px;
+  font-size: 7px; font-weight: 800; color: #f59e0b; line-height: 1;
+}
+.clue-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+.clue-list { list-style: none; padding: 0; margin: 0; }
+.clue-list li { font-size: 13px; color: #888; padding: 6px 0; border-bottom: 1px solid #161616; line-height: 1.4; }
+.clue-list li b { color: #f59e0b; margin-right: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% set ws = activities.get('wordsearch', {}) %}
+{% set su = activities.get('sudoku', {}) %}
+{% set cw = activities.get('crossword', {}) %}
+{% set tr = activities.get('trivia', {}) %}
+
+<div class="page-header">
+  <a href="/actgen/" class="back-link"><i class="fas fa-arrow-left"></i> Activity Books</a>
+  <div class="page-header-row">
+    <div>
+      <h1><i class="fas fa-puzzle-piece"></i> {{ book.theme }}</h1>
+      <p class="subtitle" style="margin-top:6px;">
+        <span class="badge badge-accent" style="margin-right:8px;">{{ book.difficulty }}</span>
+        {{ book.age_group }} &middot; {{ book.created_at.strftime('%B %d, %Y') }}
+      </p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost-accent btn-sm" onclick="window.location.href='/actgen/{{ book.id }}/download'">
+        <i class="fas fa-download"></i> Download
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="deleteBook()">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('tabWS', this)">
+    <i class="fas fa-search"></i> Word Search
+  </button>
+  <button class="tab-btn" onclick="switchTab('tabSU', this)">
+    <i class="fas fa-th"></i> Sudoku
+  </button>
+  <button class="tab-btn" onclick="switchTab('tabCW', this)">
+    <i class="fas fa-crosshairs"></i> Crossword
+  </button>
+  <button class="tab-btn" onclick="switchTab('tabTR', this)">
+    <i class="fas fa-question-circle"></i> Trivia
+  </button>
+</div>
+
+<!-- ── Word Search ─────────────────────────────────────────────────────────── -->
+<div class="tab-panel active" id="tabWS">
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;">
+
+    <div class="card" style="overflow-x:auto;">
+      <table class="ws-table">
+        {% for row in ws.get('grid', []) %}
+        <tr>{% for ch in row %}<td>{{ ch }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div>
+      <div class="card">
+        <p class="section-label" style="margin-top:0;">Words to find</p>
+        <div class="chips">
+          {% for word in ws.get('words', []) %}
+          <span class="chip" style="font-family:'Courier New',monospace;font-weight:800;letter-spacing:.05em;">{{ word }}</span>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-muted" style="margin-top:14px;">Words are hidden horizontally, vertically, and diagonally.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Sudoku ──────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tabSU">
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;">
+
+    <div class="card" style="overflow-x:auto;">
+      <table class="sdk-table">
+        {% for r in range(9) %}
+        <tr>
+          {% for c in range(9) %}
+          {% set val = su.get('puzzle', [[0]*9]*9)[r][c] %}
+          <td class="{% if val %}given{% else %}empty{% endif %}{% if c in [2,5] %} br{% endif %}{% if r in [2,5] %} bb{% endif %}">
+            {% if val %}{{ val }}{% else %}&middot;{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div>
+      <div class="card">
+        <p class="section-label" style="margin-top:0;">How to play</p>
+        <p class="text-sm text-muted" style="line-height:1.7;margin-bottom:14px;">
+          Fill every <strong style="color:#ccc;">row</strong>,
+          <strong style="color:#ccc;">column</strong>, and
+          <strong style="color:#ccc;">3×3 box</strong> with digits 1–9.
+          Each digit may appear only once in each row, column, and box.
+        </p>
+        <button class="btn btn-ghost-accent btn-sm w-full" onclick="revealSudoku()" id="revealBtn">
+          <i class="fas fa-eye"></i> Reveal Solution
+        </button>
+      </div>
+
+      <div class="card hidden" id="sudokuSolution">
+        <p class="section-label" style="margin-top:0;color:#34d399;">Solution</p>
+        <div style="overflow-x:auto;">
+          <table class="sdk-table">
+            {% for r in range(9) %}
+            <tr>
+              {% for c in range(9) %}
+              {% set val = su.get('solution', [[0]*9]*9)[r][c] %}
+              <td class="given{% if c in [2,5] %} br{% endif %}{% if r in [2,5] %} bb{% endif %}">{{ val }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Crossword ───────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tabCW">
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;">
+
+    <div class="card" style="overflow-x:auto;">
+      {% set across_pos = {} %}
+      {% set down_pos   = {} %}
+      {% for item in cw.get('across', []) %}{% set _ = across_pos.update({(item.row, item.col): item.num}) %}{% endfor %}
+      {% for item in cw.get('down',   []) %}{% set _ = down_pos.update({(item.row, item.col): item.num}) %}{% endfor %}
+      <table class="cw-table">
+        {% for ri in range(cw.get('grid', [])|length) %}
+        <tr>
+          {% for ci in range(cw.get('grid', [[]])[ri]|length) %}
+          {% set ch = cw.get('grid', [[]])[ri][ci] %}
+          {% set n  = across_pos.get((ri, ci)) or down_pos.get((ri, ci)) %}
+          <td class="{% if ch == '#' %}blk{% endif %}">
+            {% if n %}<span class="cw-num">{{ n }}</span>{% endif %}
+            {% if ch != '#' %}{{ ch }}{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="clue-cols">
+        <div>
+          <p class="section-label" style="margin-top:0;">Across</p>
+          <ul class="clue-list">
+            {% for item in cw.get('across', []) %}
+            <li><b>{{ item.num }}.</b> {{ item.clue }}</li>
+            {% else %}<li style="color:#333;">—</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <p class="section-label" style="margin-top:0;">Down</p>
+          <ul class="clue-list">
+            {% for item in cw.get('down', []) %}
+            <li><b>{{ item.num }}.</b> {{ item.clue }}</li>
+            {% else %}<li style="color:#333;">—</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Trivia ──────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tabTR">
+  {% if tr.get('questions') %}
+  <div class="trivia-grid">
+    {% for q in tr.get('questions', []) %}
+    <div class="card" id="tq-{{ loop.index0 }}">
+      <p class="text-sm text-white text-bold" style="margin-bottom:12px;line-height:1.5;">
+        {{ loop.index }}. {{ q.get('q', '') }}
+      </p>
+      {% for opt in q.get('options', []) %}
+      <div class="quiz-option"
+           data-correct="{{ 'true' if loop.index0 == q.get('answer', 0) else 'false' }}"
+           onclick="pickTrivia(this)">
+        <span class="quiz-letter">{{ ['A','B','C','D'][loop.index0] }}</span>
+        {{ opt }}
+      </div>
+      {% endfor %}
+      <button class="btn btn-ghost btn-xs" style="margin-top:10px;"
+              onclick="revealTrivia('tq-{{ loop.index0 }}', {{ q.get('answer', 0) }})">
+        <i class="fas fa-eye"></i> Reveal
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon"><i class="fas fa-question-circle"></i></div>
+      <p>No trivia questions were generated.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function revealSudoku() {
+  document.getElementById('sudokuSolution').classList.remove('hidden');
+  document.getElementById('revealBtn').style.display = 'none';
+}
+
+function pickTrivia(el) {
+  el.closest('.card').querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function revealTrivia(cardId, correct) {
+  const card = document.getElementById(cardId);
+  card.querySelectorAll('.quiz-option').forEach((opt, i) => {
+    opt.style.pointerEvents = 'none';
+    if (i === correct) opt.classList.add('correct');
+    else if (opt.classList.contains('selected')) opt.classList.add('wrong');
+  });
+  card.querySelector('button').style.display = 'none';
+}
+
+async function deleteBook() {
+  if (!confirm('Delete this activity book permanently?')) return;
+  const r = await fetch('/actgen/{{ book.id }}/delete', { method: 'POST' });
+  const d = await r.json();
+  if (d.success) window.location = '/actgen/';
+  else showMsg(d.error || 'Delete failed.', 'error');
+}
+</script>
+{% endblock %}

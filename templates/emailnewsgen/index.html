@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Newsletter Generator{% endblock %}
+{% block accent %}#10b981{% endblock %}
+{% block accent_dark %}#059669{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="fas fa-envelope-open-text"></i> Newsletter Generator</h1>
+  <p class="subtitle">AI-crafted email newsletters for any audience, tone, and topic</p>
+</div>
+
+<div class="split-lg">
+
+  <!-- ── Left: form ── -->
+  <div class="sticky-col">
+    <div class="card">
+      <p class="section-label" style="margin-top:0;">Create newsletter</p>
+
+      <div class="form-group">
+        <label class="form-label">Topic</label>
+        <textarea class="textarea" id="topic" rows="3"
+          placeholder="e.g. Top AI trends this week, Product launch announcement…"></textarea>
+      </div>
+
+      <div class="input-row">
+        <div class="form-group mb-0">
+          <label class="form-label">Audience</label>
+          <input class="input" id="audience" placeholder="e.g. Developers, Marketers">
+        </div>
+        <div class="form-group mb-0">
+          <label class="form-label">Tone</label>
+          <select class="select" id="tone">
+            <option>Professional</option>
+            <option>Casual</option>
+            <option>Inspiring</option>
+            <option>Friendly</option>
+            <option>Educational</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-row" style="margin-top:14px;">
+        <div class="form-group mb-0">
+          <label class="form-label">Sections</label>
+          <select class="select" id="num_sections">
+            <option value="2">2 Sections</option>
+            <option value="3" selected>3 Sections</option>
+            <option value="4">4 Sections</option>
+            <option value="5">5 Sections</option>
+          </select>
+        </div>
+        <div class="form-group mb-0">
+          <label class="form-label">CTA Button</label>
+          <input class="input" id="cta_text" placeholder="e.g. Read More" value="Read More">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="genBtn" onclick="generate()" style="margin-top:16px;">
+        <i class="fas fa-wand-magic-sparkles"></i> Generate Newsletter
+      </button>
+    </div>
+
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <div>
+        <div class="loader-text" style="font-weight:700;color:#888;">Crafting newsletter…</div>
+        <div class="loader-text" style="font-size:12px;margin-top:2px;">This may take 15–20 seconds</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <p class="section-label" style="margin-top:20px;">Recent Newsletters</p>
+    <div id="historyList">
+      {% if newsletters %}
+        {% for nl in newsletters %}
+        <div class="history-item" id="nl-{{ nl.id }}">
+          <div class="history-icon"><i class="fas fa-envelope"></i></div>
+          <div class="history-meta" onclick="downloadNl({{ nl.id }})" style="cursor:pointer;">
+            <div class="title">{{ nl.subject }}</div>
+            <div class="sub">{{ nl.tone }} &middot; {{ nl.created_at.strftime('%b %d, %Y') }}</div>
+          </div>
+          <button class="btn btn-icon" onclick="deleteNl({{ nl.id }})" title="Delete">
+            <i class="fas fa-trash" style="font-size:11px;color:#f87171;"></i>
+          </button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" id="emptyState">
+          <div class="icon"><i class="fas fa-envelope-open"></i></div>
+          <p>No newsletters yet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Right: preview ── -->
+  <div>
+    <!-- Placeholder shown before generation -->
+    <div id="previewPlaceholder" class="card" style="min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;border-style:dashed;">
+      <i class="fas fa-envelope-open-text" style="font-size:40px;opacity:.1;"></i>
+      <p class="text-muted text-sm">Your newsletter preview will appear here</p>
+    </div>
+
+    <!-- Result (hidden until generated) -->
+    <div id="resultSection" class="hidden">
+      <!-- Subject + actions row -->
+      <div class="flex items-center justify-between gap-12" style="margin-bottom:14px;flex-wrap:wrap;">
+        <div>
+          <p class="text-xs text-muted" style="margin-bottom:3px;">SUBJECT LINE</p>
+          <p class="text-white text-bold" id="subjectLine" style="font-size:14px;"></p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-sm" onclick="copyHtml()">
+            <i class="fas fa-copy"></i> Copy HTML
+          </button>
+          <button class="btn btn-ghost-accent btn-sm" id="downloadBtn">
+            <i class="fas fa-download"></i> Download
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs: Preview / HTML -->
+      <div class="tabs" style="margin-bottom:0;">
+        <button class="tab-btn active" onclick="switchTab('tabPreview', this)">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+        <button class="tab-btn" onclick="switchTab('tabHtml', this)">
+          <i class="fas fa-code"></i> HTML Source
+        </button>
+      </div>
+
+      <div class="tab-panel active" id="tabPreview">
+        <div class="nl-preview-wrap">
+          <iframe id="nlFrame" srcdoc="" style="width:100%;height:480px;border:none;display:block;"></iframe>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabHtml">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <pre id="htmlSource" style="padding:16px;font-size:12px;color:#888;overflow-x:auto;max-height:480px;white-space:pre-wrap;word-break:break-all;margin:0;background:transparent;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _nlId = null, _rawHtml = '';
+
+function switchTab(id, btn) {
+  document.querySelectorAll('#resultSection .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#resultSection .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showMsg('Please enter a topic.', 'warn'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  document.getElementById('loader').classList.add('show');
+  hideMsg();
+
+  try {
+    const r = await fetch('/emailnewsgen/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic,
+        audience:     document.getElementById('audience').value || 'General audience',
+        tone:         document.getElementById('tone').value,
+        num_sections: document.getElementById('num_sections').value,
+        cta_text:     document.getElementById('cta_text').value || 'Read More',
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      showResult(d.id, d.subject, d.content_html);
+      prependHistory(d.id, d.subject, document.getElementById('tone').value);
+      showMsg('Newsletter generated!', 'success');
+    } else {
+      showMsg(d.error || 'Generation failed.', 'error');
+    }
+  } catch(e) {
+    showMsg('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('loader').classList.remove('show');
+  }
+}
+
+function showResult(id, subject, html) {
+  _nlId    = id;
+  _rawHtml = html;
+
+  document.getElementById('previewPlaceholder').classList.add('hidden');
+  document.getElementById('resultSection').classList.remove('hidden');
+  document.getElementById('subjectLine').textContent = subject;
+  document.getElementById('nlFrame').srcdoc = html;
+  document.getElementById('htmlSource').textContent = html;
+  document.getElementById('downloadBtn').onclick = () => { window.location.href = '/emailnewsgen/' + id + '/download'; };
+
+  // Reset to preview tab
+  document.querySelectorAll('#resultSection .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#resultSection .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabPreview').classList.add('active');
+  document.querySelector('#resultSection .tab-btn').classList.add('active');
+}
+
+function prependHistory(id, subject, tone) {
+  const list  = document.getElementById('historyList');
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+
+  const el = document.createElement('div');
+  el.className = 'history-item';
+  el.id = 'nl-' + id;
+  el.innerHTML = `
+    <div class="history-icon"><i class="fas fa-envelope"></i></div>
+    <div class="history-meta" onclick="downloadNl(${id})" style="cursor:pointer;">
+      <div class="title">${subject}</div>
+      <div class="sub">${tone} &middot; Just now</div>
+    </div>
+    <button class="btn btn-icon" onclick="deleteNl(${id})" title="Delete">
+      <i class="fas fa-trash" style="font-size:11px;color:#f87171;"></i>
+    </button>`;
+  list.prepend(el);
+}
+
+function downloadNl(id) { window.location.href = '/emailnewsgen/' + id + '/download'; }
+
+async function deleteNl(id) {
+  if (!confirm('Delete this newsletter?')) return;
+  const r = await fetch('/emailnewsgen/' + id + '/delete', { method: 'POST' });
+  const d = await r.json();
+  if (d.success) {
+    document.getElementById('nl-' + id)?.remove();
+    if (_nlId === id) {
+      document.getElementById('resultSection').classList.add('hidden');
+      document.getElementById('previewPlaceholder').classList.remove('hidden');
+    }
+    showMsg('Deleted.', 'success');
+  }
+}
+
+function copyHtml() {
+  if (!_rawHtml) { showMsg('Nothing to copy.', 'warn'); return; }
+  navigator.clipboard.writeText(_rawHtml).then(() => showMsg('HTML copied to clipboard!', 'success'));
+}
+</script>
+{% endblock %}

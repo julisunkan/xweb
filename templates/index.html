@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}AI Tools Suite{% endblock %}
+{% block accent %}#7c3aed{% endblock %}
+{% block accent_dark %}#5b21b6{% endblock %}
+
+{% block head %}
+<style>
+  .hero {
+    text-align: center;
+    padding: 60px 20px 48px;
+  }
+  .hero .eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 42px; font-weight: 900; color: #f0f0f0;
+    letter-spacing: -.8px; line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 16px; color: #444; max-width: 500px; margin: 0 auto;
+    line-height: 1.65;
+  }
+  .api-notice {
+    display: flex; align-items: center; gap: 10px;
+    background: #0e0e0e; border: 1px solid #1e1e1e;
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 13px; color: #484848;
+    margin-bottom: 24px;
+  }
+  .api-notice i { color: var(--accent); font-size: 15px; flex-shrink: 0; }
+  .api-notice code {
+    background: #161616; padding: 2px 8px; border-radius: 5px;
+    font-size: 12px; color: #666; font-family: monospace;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="eyebrow"><i class="fas fa-bolt"></i> Powered by Groq AI</div>
+  <h1>Three tools.<br><span>One dashboard.</span></h1>
+  <p>Generate AI-powered courses, email newsletters, and custom activity books — instantly.</p>
+</div>
+
+<p class="section-label">Your Apps</p>
+
+<div class="app-grid" style="margin-bottom:32px;">
+
+  <a class="app-tile" href="/coursegen/" style="--tile-accent:#6366f1;">
+    <div class="app-tile-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">
+      <i class="fas fa-graduation-cap"></i>
+    </div>
+    <div class="name">Course Generator</div>
+    <div class="desc">Full AI-generated courses with module content, interactive quizzes, and assignments.</div>
+    <div class="open-link">Open <i class="fas fa-arrow-right"></i></div>
+  </a>
+
+  <a class="app-tile" href="/emailnewsgen/" style="--tile-accent:#10b981;">
+    <div class="app-tile-icon" style="background:rgba(16,185,129,.12);color:#10b981;">
+      <i class="fas fa-envelope-open-text"></i>
+    </div>
+    <div class="name">Newsletter Generator</div>
+    <div class="desc">Craft styled email newsletters for any audience, tone, and topic in seconds.</div>
+    <div class="open-link">Open <i class="fas fa-arrow-right"></i></div>
+  </a>
+
+  <a class="app-tile" href="/actgen/" style="--tile-accent:#f59e0b;">
+    <div class="app-tile-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+      <i class="fas fa-puzzle-piece"></i>
+    </div>
+    <div class="name">Activity Book</div>
+    <div class="desc">Word searches, Sudoku, crosswords, and trivia — custom-themed for any age group.</div>
+    <div class="open-link">Open <i class="fas fa-arrow-right"></i></div>
+  </a>
+
+</div>
+
+<div class="api-notice">
+  <i class="fas fa-key"></i>
+  <span>To unlock AI features, add your Groq API key: run
+    <code>INSERT INTO settings (key,value) VALUES ('GROQ_API_KEY','gsk_...')</code>
+    on the database, or use a DB browser.
+  </span>
+</div>
+{% endblock %}
