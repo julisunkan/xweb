@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, Response
 from models import db, Setting, Newsletter
 import json
+import re
+import time
 
 emailnewsgen_bp = Blueprint("emailnewsgen", __name__, url_prefix="/emailnewsgen")
 
@@ -8,6 +10,101 @@ emailnewsgen_bp = Blueprint("emailnewsgen", __name__, url_prefix="/emailnewsgen"
 def get_groq_key():
     s = Setting.query.filter_by(key="GROQ_API_KEY").first()
     return s.value.strip() if s else ""
+
+
+def extract_json(text: str) -> dict:
+    """Robustly extract the first complete JSON object from arbitrary text."""
+    text = text.strip()
+
+    # 1. Direct parse
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # 2. Strip markdown code fence
+    m = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+    if m:
+        try:
+            return json.loads(m.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+
+    # 3. Find outermost { … } by tracking brace depth
+    start = text.find('{')
+    if start != -1:
+        depth = 0
+        in_str = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if escape:
+                escape = False
+                continue
+            if ch == '\\' and in_str:
+                escape = True
+                continue
+            if ch == '"':
+                in_str = not in_str
+                continue
+            if in_str:
+                continue
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start:i + 1])
+                    except json.JSONDecodeError:
+                        break
+
+    raise json.JSONDecodeError(
+        f"No valid JSON found. Raw (first 300 chars): {text[:300]}",
+        text, 0,
+    )
+
+
+def groq_newsletter(client, messages, max_tokens=4500, retries=4):
+    """Call Groq with JSON mode and retry on rate-limit or parse failures."""
+    from groq import RateLimitError
+    delay = 1.5
+    json_failures = 0
+    raw = ""
+
+    for attempt in range(retries):
+        try:
+            resp = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                response_format={"type": "json_object"},
+            )
+            raw = resp.choices[0].message.content or ""
+            return extract_json(raw)
+        except RateLimitError as e:
+            if attempt == retries - 1:
+                raise
+            wait = delay
+            m = re.search(r'in (\d+(?:\.\d+)?)s', str(e))
+            if m:
+                wait = float(m.group(1)) + 0.5
+            else:
+                m = re.search(r'in (\d+)ms', str(e))
+                if m:
+                    wait = int(m.group(1)) / 1000 + 0.5
+            time.sleep(wait)
+            delay *= 2
+        except json.JSONDecodeError:
+            json_failures += 1
+            if json_failures >= 3 or attempt == retries - 1:
+                raise
+            messages = list(messages) + [
+                {"role": "assistant", "content": raw},
+                {"role": "user",      "content": "Your response was not valid JSON. Return only a valid JSON object with keys 'subject' and 'content_html', nothing else."},
+            ]
+            time.sleep(1.0)
 
 
 @emailnewsgen_bp.route("/")
@@ -19,74 +116,72 @@ def index():
 @emailnewsgen_bp.route("/generate", methods=["POST"])
 def generate():
     data = request.get_json()
-    topic = data.get("topic", "").strip()
-    audience = data.get("audience", "General audience").strip() or "General audience"
-    tone = data.get("tone", "Professional")
+    topic       = data.get("topic", "").strip()
+    audience    = data.get("audience", "General audience").strip() or "General audience"
+    tone        = data.get("tone", "Professional")
     num_sections = max(2, min(5, int(data.get("num_sections", 3))))
-    cta_text = data.get("cta_text", "Learn More").strip() or "Learn More"
+    cta_text    = data.get("cta_text", "Learn More").strip() or "Learn More"
 
     if not topic:
         return jsonify({"error": "Topic is required."}), 400
 
     key = get_groq_key()
     if not key:
-        return jsonify({"error": "Groq API key not configured. Ask your admin."}), 400
+        return jsonify({"error": "Groq API key not configured. Set it in Admin → Settings."}), 400
 
     try:
         from groq import Groq
         client = Groq(api_key=key)
 
         prompt = (
-            f"Write a {tone} email newsletter about '{topic}' for '{audience}'.\n"
-            f"Include {num_sections} content sections plus a CTA button labelled '{cta_text}'.\n"
-            "Return ONLY valid JSON (no text outside it):\n"
-            "{\n"
-            '  "subject": "Compelling subject line, max 60 chars",\n'
-            '  "content_html": "<div> ... full self-contained HTML newsletter fragment with inline styles. '
-            "Start with <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>. "
-            "Include: a header banner with gradient background, bold newsletter title, intro paragraph, "
-            f"{num_sections} clearly titled sections with body text, a prominent CTA button, and a footer. "
-            "All styles must be inline. Colours should match a "
-            f"{tone} tone. Make it visually rich and professional."
-            ' ... </div>"\n'
-            "}"
+            f"You are an expert HTML email designer.\n"
+            f"Write a {tone} email newsletter about: {topic}\n"
+            f"Target audience: {audience}\n"
+            f"Include exactly {num_sections} content sections and a CTA button that says \"{cta_text}\".\n\n"
+            "Return a JSON object with exactly two keys:\n"
+            "  subject  — a compelling email subject line (max 70 characters)\n"
+            "  content_html — a complete, self-contained HTML email body with ALL styles inline\n\n"
+            "HTML requirements:\n"
+            "- Outer wrapper: <div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;\">\n"
+            "- Header: gradient banner with newsletter title in large bold white text\n"
+            f"- Body: {num_sections} sections, each with a bold coloured heading and 2-3 sentences of body text\n"
+            f"- CTA: a prominent button styled with background-color, padding, border-radius, and text \"{cta_text}\"\n"
+            "- Footer: small grey text with unsubscribe note\n"
+            f"- Colour palette should feel {tone.lower()} and professional\n"
+            "- All CSS must be inline (no <style> tags)\n"
+            "- Use only double quotes for HTML attributes — escape them as &quot; if needed inside JSON\n"
         )
 
-        resp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are an expert email designer. Return only valid JSON."},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=3000,
-        )
+        parsed = groq_newsletter(client, [
+            {"role": "system", "content": "You are an expert HTML email designer. Always respond with valid JSON only."},
+            {"role": "user",   "content": prompt},
+        ])
 
-        raw = resp.choices[0].message.content.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```", 2)[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        parsed = json.loads(raw.strip())
+        subject      = parsed.get("subject") or topic
+        content_html = parsed.get("content_html") or parsed.get("html") or ""
+
+        if not content_html:
+            return jsonify({"error": "AI returned an empty newsletter. Please try again."}), 500
 
         nl = Newsletter(
-            subject=parsed["subject"],
+            subject=subject,
             topic=topic,
             audience=audience,
             tone=tone,
-            content_html=parsed["content_html"],
+            content_html=content_html,
         )
         db.session.add(nl)
         db.session.commit()
 
         return jsonify({
-            "success": True,
-            "id": nl.id,
-            "subject": nl.subject,
+            "success":      True,
+            "id":           nl.id,
+            "subject":      nl.subject,
             "content_html": nl.content_html,
         })
 
     except json.JSONDecodeError:
-        return jsonify({"error": "AI returned an invalid response. Please try again."}), 500
+        return jsonify({"error": "AI returned an invalid response after several attempts. Please try again."}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
