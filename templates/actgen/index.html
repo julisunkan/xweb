@@ -40,19 +40,19 @@
 /* ── Difficulty selector ── */
 .diff-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 .diff-btn {
-  padding: 12px 8px; border-radius: 12px; border: 1.5px solid #1e1e1e;
-  background: #141414; color: #444; font-size: 15px; font-weight: 700;
+  padding: 12px 8px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.09);
+  background: rgba(20,14,38,.80); color: #6a5a8a; font-size: 15px; font-weight: 700;
   cursor: pointer; text-align: center; transition: all .18s; font-family: inherit;
 }
-.diff-btn.selected { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb,var(--accent) 10%,transparent); }
-.diff-btn:hover:not(.selected) { border-color: #333; color: #999; background: #1a1a1a; }
+.diff-btn.selected { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb,var(--accent) 12%,transparent); }
+.diff-btn:hover:not(.selected) { border-color: rgba(255,255,255,.18); color: #c8b8e8; background: rgba(255,255,255,.06); }
 .diff-btn i { display: block; font-size: 20px; margin-bottom: 6px; }
 
 /* ── Age group pills ── */
 .age-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .age-pill {
-  padding: 8px 16px; border-radius: 20px; border: 1.5px solid #1e1e1e;
-  background: #141414; color: #444; font-size: 15px; font-weight: 700;
+  padding: 8px 16px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,.09);
+  background: rgba(20,14,38,.80); color: #6a5a8a; font-size: 15px; font-weight: 700;
   cursor: pointer; transition: all .18s; font-family: inherit;
 }
 .age-pill.selected {
@@ -60,12 +60,12 @@
   background: rgba(180,83,9,.1);
   box-shadow: 0 0 12px rgba(180,83,9,.2);
 }
-.age-pill:hover:not(.selected) { border-color: #333; color: #999; background: #1a1a1a; }
+.age-pill:hover:not(.selected) { border-color: rgba(255,255,255,.18); color: #c8b8e8; background: rgba(255,255,255,.06); }
 
 /* ── Book history item ── */
 .book-item {
   display: flex; align-items: center; gap: 13px;
-  background: #111; border: 1px solid #1e1e1e; border-radius: 13px;
+  background: rgba(20,14,38,.88); border: 1px solid rgba(255,255,255,.08); border-radius: 13px;
   padding: 14px 16px; margin-bottom: 8px; cursor: pointer;
   transition: border-color .2s, background .2s, transform .2s, box-shadow .2s;
   position: relative; overflow: hidden;
@@ -77,7 +77,7 @@
 }
 .book-item:hover::before { opacity: 1; }
 .book-item:hover {
-  border-color: rgba(245,158,11,.4); background: #141414;
+  border-color: rgba(245,158,11,.4); background: rgba(30,20,55,.90);
   transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,.3);
 }
 

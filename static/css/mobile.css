@@ -204,23 +204,20 @@ body {
 
 /* ── Cards ────────────────────────────────────────────── */
 .card {
-  background: rgba(20,14,38,.82);
-  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(20,14,38,.88);
+  border: 1px solid rgba(255,255,255,.09);
   border-radius: 16px;
   padding: 22px;
   margin-bottom: 14px;
-  backdrop-filter: blur(6px);
   transition: border-color .2s, box-shadow .2s, transform .2s;
 }
 .card-sm {
-  background: rgba(22,16,42,.82); border: 1px solid rgba(255,255,255,.07);
+  background: rgba(22,16,42,.88); border: 1px solid rgba(255,255,255,.08);
   border-radius: 11px; padding: 14px 16px; margin-bottom: 9px;
-  backdrop-filter: blur(6px);
 }
 .card-flat {
-  background: rgba(16,10,30,.88); border: 1px solid rgba(255,255,255,.06);
+  background: rgba(16,10,30,.92); border: 1px solid rgba(255,255,255,.07);
   border-radius: 16px; padding: 20px; margin-bottom: 14px;
-  backdrop-filter: blur(6px);
 }
 .card-accent {
   border-color: color-mix(in srgb,var(--accent) 40%,transparent);
@@ -392,9 +389,8 @@ body {
 /* ── Loader ───────────────────────────────────────────── */
 .loader {
   display: none; align-items: center; gap: 14px;
-  padding: 18px 20px; background: rgba(20,14,38,.82); border: 1px solid rgba(255,255,255,.08);
+  padding: 18px 20px; background: rgba(20,14,38,.88); border: 1px solid rgba(255,255,255,.08);
   border-radius: 14px; margin-bottom: 14px; animation: fadeIn .25s ease;
-  backdrop-filter: blur(6px);
 }
 .loader.show { display: flex; }
 .spinner {
@@ -430,10 +426,9 @@ body {
 /* ── History items ────────────────────────────────────── */
 .history-item {
   display: flex; align-items: center; gap: 13px;
-  background: rgba(20,14,38,.80); border: 1px solid rgba(255,255,255,.08); border-radius: 13px;
+  background: rgba(20,14,38,.88); border: 1px solid rgba(255,255,255,.08); border-radius: 13px;
   padding: 14px 16px; margin-bottom: 8px;
   text-decoration: none; cursor: pointer;
-  backdrop-filter: blur(6px);
   transition: border-color .2s, background .2s, transform .2s, box-shadow .2s;
 }
 .history-item:hover {
@@ -585,9 +580,8 @@ body {
 @media (max-width: 640px) { .app-grid { grid-template-columns: 1fr; } }
 
 .app-tile {
-  display: block; background: rgba(20,14,38,.80); border: 1px solid rgba(255,255,255,.09);
+  display: block; background: rgba(20,14,38,.88); border: 1px solid rgba(255,255,255,.09);
   border-radius: 22px; padding: 28px; text-decoration: none;
-  backdrop-filter: blur(8px);
   transition: border-color .25s, transform .25s, box-shadow .25s;
   position: relative; overflow: hidden;
 }
@@ -644,9 +638,8 @@ body {
   gap: 14px; margin-bottom: 30px;
 }
 .stat-card {
-  background: rgba(20,14,38,.82); border: 1px solid rgba(255,255,255,.08); border-radius: 16px;
+  background: rgba(20,14,38,.88); border: 1px solid rgba(255,255,255,.08); border-radius: 16px;
   padding: 20px; display: flex; flex-direction: column; gap: 6px;
-  backdrop-filter: blur(6px);
   transition: transform .2s, border-color .2s, box-shadow .2s;
   position: relative; overflow: hidden;
 }
