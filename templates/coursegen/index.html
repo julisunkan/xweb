@@ -24,8 +24,8 @@
   border: 2.5px solid #222; border-top-color: var(--accent);
   border-radius: 50%; animation: spin .7s linear infinite;
 }
-.progress-title { font-size: 13.5px; font-weight: 700; color: #ccc; }
-.progress-sub   { font-size: 12px; color: #444; margin-top: 2px; }
+.progress-title { font-size: 15.5px; font-weight: 700; color: #ccc; }
+.progress-sub   { font-size: 14px; color: #444; margin-top: 2px; }
 
 .progress-bar-wrap { background: #1a1a1a; border-radius: 20px; height: 5px; margin-bottom: 14px; }
 .progress-bar-fill {
@@ -37,25 +37,25 @@
 .module-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .module-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px; font-size: 13.5px; font-weight: 600;
   background: #151515; border: 1px solid #222; color: #3a3a3a;
   transition: all .2s;
 }
 .module-pill.done   { background: color-mix(in srgb,var(--green) 12%,transparent); border-color: color-mix(in srgb,var(--green) 30%,transparent); color: var(--green); }
 .module-pill.active { background: #1a1a1a; border-color: #333; color: #aaa; }
-.module-pill i { font-size: 10px; }
+.module-pill i { font-size: 12px; }
 
 /* ── Advanced options collapsible ── */
 .adv-toggle {
   display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 700; color: #3a3a3a;
+  font-size: 14px; font-weight: 700; color: #3a3a3a;
   cursor: pointer; margin: 12px 0 0;
   background: none; border: none; font-family: inherit;
   text-transform: uppercase; letter-spacing: .07em; width: 100%; text-align: left;
   transition: color .15s; padding: 8px 0;
 }
 .adv-toggle:hover { color: #888; }
-.adv-toggle i { transition: transform .2s; font-size: 11px; }
+.adv-toggle i { transition: transform .2s; font-size: 13px; }
 .adv-toggle.open i { transform: rotate(90deg); }
 .adv-body { display: none; margin-top: 12px; }
 .adv-body.show { display: block; animation: fadeInUp .25s ease both; }
@@ -70,7 +70,7 @@
 .form-card-icon {
   width: 38px; height: 38px; border-radius: 10px;
   background: rgba(59,130,246,.15); color: var(--blue);
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -96,9 +96,9 @@
 }
 
 /* ── Difficulty badges ── */
-.diff-badge-beginner     { background: rgba(34,197,94,.12);  color: var(--green);  border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
-.diff-badge-intermediate { background: rgba(245,158,11,.12); color: var(--yellow); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
-.diff-badge-advanced     { background: rgba(239,68,68,.12);  color: var(--red);    border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.diff-badge-beginner     { background: rgba(34,197,94,.12);  color: var(--green);  border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 700; }
+.diff-badge-intermediate { background: rgba(245,158,11,.12); color: var(--yellow); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 700; }
+.diff-badge-advanced     { background: rgba(239,68,68,.12);  color: var(--red);    border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 700; }
 </style>
 {% endblock %}
 
@@ -119,8 +119,8 @@
       <div class="form-card-header">
         <div class="form-card-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
         <div>
-          <div style="font-size:14px;font-weight:800;color:#e0e0e0;">Generate a New Course</div>
-          <div style="font-size:12px;color:#3a3a3a;margin-top:2px;">Powered by Groq AI</div>
+          <div style="font-size:16px;font-weight:800;color:#e0e0e0;">Generate a New Course</div>
+          <div style="font-size:14px;color:#3a3a3a;margin-top:2px;">Powered by Groq AI</div>
         </div>
       </div>
 

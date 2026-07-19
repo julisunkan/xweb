@@ -33,11 +33,11 @@
 .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.45); }
 .stat-card .stat-icon {
   width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
   margin-bottom: 4px;
 }
-.stat-card .stat-num   { font-size: 32px; font-weight: 900; color: #f0f0f0; letter-spacing: -.5px; }
-.stat-card .stat-label { font-size: 11px; color: #3e3e3e; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.stat-card .stat-num   { font-size: 34px; font-weight: 900; color: #f0f0f0; letter-spacing: -.5px; }
+.stat-card .stat-label { font-size: 13px; color: #3e3e3e; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 
 /* ── Setting row ── */
 .setting-row {
@@ -51,7 +51,7 @@
 .setting-row:last-child { border-bottom: none; }
 @media (max-width: 640px) { .setting-row { grid-template-columns: 1fr; gap: 8px; } }
 .setting-key {
-  font-size: 12.5px; font-weight: 700;
+  font-size: 14.5px; font-weight: 700;
   font-family: 'Courier New', monospace;
   color: #888; letter-spacing: .02em; padding-top: 2px;
 }
@@ -59,14 +59,14 @@
   display: inline-block;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent); border-radius: 5px;
-  padding: 2px 8px; font-size: 11px;
+  padding: 2px 8px; font-size: 13px;
 }
 .setting-val-wrap { position: relative; display: flex; gap: 6px; align-items: center; }
-.setting-val-wrap .input { font-family: 'Courier New', monospace; font-size: 13px; padding-right: 40px; }
+.setting-val-wrap .input { font-family: 'Courier New', monospace; font-size: 15px; padding-right: 40px; }
 .toggle-vis {
   position: absolute; right: 10px;
   background: none; border: none; cursor: pointer;
-  color: #444; font-size: 13px; transition: color .15s;
+  color: #444; font-size: 15px; transition: color .15s;
 }
 .toggle-vis:hover { color: #aaa; }
 .setting-actions { display: flex; gap: 6px; flex-shrink: 0; }
@@ -84,12 +84,12 @@
 /* ── Data table ── */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
-  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
   color: #3a3a3a; text-align: left; padding: 0 12px 10px;
   border-bottom: 1px solid #1a1a1a;
 }
 .data-table td {
-  padding: 12px 12px; font-size: 13px; color: #888;
+  padding: 12px 12px; font-size: 15px; color: #888;
   border-bottom: 1px solid #141414; vertical-align: middle;
 }
 .data-table tr:last-child td { border-bottom: none; }
@@ -113,8 +113,8 @@
   box-shadow: 0 28px 72px rgba(0,0,0,.85);
   animation: scaleIn .2s ease both;
 }
-.confirm-box h3 { font-size: 18px; font-weight: 800; color: #f0f0f0; margin-bottom: 10px; }
-.confirm-box p  { font-size: 13.5px; color: #555; line-height: 1.65; margin-bottom: 22px; }
+.confirm-box h3 { font-size: 20px; font-weight: 800; color: #f0f0f0; margin-bottom: 10px; }
+.confirm-box p  { font-size: 15.5px; color: #555; line-height: 1.65; margin-bottom: 22px; }
 .confirm-actions { display: flex; gap: 10px; }
 
 /* ── Tab color coding ── */
@@ -131,9 +131,9 @@
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
 }
-.admin-header-left h1 { font-size: clamp(20px, 4vw, 28px); font-weight: 900; color: #f0f0f0; display: flex; align-items: center; gap: 12px; }
+.admin-header-left h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 900; color: #f0f0f0; display: flex; align-items: center; gap: 12px; }
 .admin-header-left h1 i { color: var(--red); }
-.admin-header-left p { color: #3e3e3e; font-size: 13.5px; margin-top: 6px; }
+.admin-header-left p { color: #3e3e3e; font-size: 15.5px; margin-top: 6px; }
 </style>
 {% endblock %}
 
@@ -203,7 +203,7 @@
     <div class="flex items-center justify-between" style="margin-bottom:18px;">
       <div>
         <p class="section-label" style="margin:0;">Configuration Keys</p>
-        <p style="font-size:12px;color:#2e2e2e;margin-top:4px;">Changes save instantly on click</p>
+        <p style="font-size:14px;color:#2e2e2e;margin-top:4px;">Changes save instantly on click</p>
       </div>
       <span class="badge badge-red"><i class="fas fa-lock" style="margin-right:4px;"></i>Secure</span>
     </div>
@@ -278,7 +278,7 @@
         <span class="badge badge-yellow"><i class="fas fa-lock-open" style="margin-right:4px;"></i>No password</span>
       {% endif %}
     </div>
-    <p style="font-size:13px;color:#3e3e3e;margin-bottom:16px;line-height:1.6;">
+    <p style="font-size:15px;color:#3e3e3e;margin-bottom:16px;line-height:1.6;">
       {% if settings | selectattr('key', '==', 'ADMIN_PASSWORD') | list %}
         Visitors must log in to access this panel.
       {% else %}
@@ -301,10 +301,10 @@
   <div class="card-flat" style="display:flex;gap:14px;align-items:flex-start;">
     <div class="feat-icon feat-icon-red" style="flex-shrink:0;margin-top:2px;"><i class="fas fa-circle-info"></i></div>
     <div>
-      <div style="font-size:13px;font-weight:800;color:#ccc;margin-bottom:6px;">Getting a Groq API Key</div>
-      <div style="font-size:13px;color:#484848;line-height:1.7;">
+      <div style="font-size:15px;font-weight:800;color:#ccc;margin-bottom:6px;">Getting a Groq API Key</div>
+      <div style="font-size:15px;color:#484848;line-height:1.7;">
         Get your free key at <a href="https://console.groq.com" target="_blank" style="color:var(--red);">console.groq.com</a>.
-        Add it as <code style="background:#161616;padding:2px 8px;border-radius:6px;font-size:12px;color:var(--red);">GROQ_API_KEY</code> above to enable all AI generation features.
+        Add it as <code style="background:#161616;padding:2px 8px;border-radius:6px;font-size:14px;color:var(--red);">GROQ_API_KEY</code> above to enable all AI generation features.
         The key is stored in the local database and never shared anywhere except Groq's API.
       </div>
     </div>
@@ -333,9 +333,9 @@
           <tr id="row-course-{{ c.id }}">
             <td class="td-title"><span>{{ c.title or c.topic }}</span></td>
             <td>
-              {% if c.difficulty == 'Beginner' %}<span style="background:rgba(34,197,94,.12);color:var(--green);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ c.difficulty }}</span>
-              {% elif c.difficulty == 'Advanced' %}<span style="background:rgba(239,68,68,.12);color:var(--red);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ c.difficulty }}</span>
-              {% else %}<span style="background:rgba(245,158,11,.12);color:var(--yellow);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">{{ c.difficulty }}</span>{% endif %}
+              {% if c.difficulty == 'Beginner' %}<span style="background:rgba(34,197,94,.12);color:var(--green);border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;">{{ c.difficulty }}</span>
+              {% elif c.difficulty == 'Advanced' %}<span style="background:rgba(239,68,68,.12);color:var(--red);border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;">{{ c.difficulty }}</span>
+              {% else %}<span style="background:rgba(245,158,11,.12);color:var(--yellow);border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;">{{ c.difficulty }}</span>{% endif %}
             </td>
             <td><span class="badge badge-blue">{{ c.total_modules }}</span></td>
             <td>{{ c.language }}</td>
