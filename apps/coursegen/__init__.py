@@ -7,7 +7,8 @@ from models import db, Setting, Course, CourseModule, CourseQuiz, CourseAssignme
 
 coursegen_bp = Blueprint("coursegen", __name__, url_prefix="/coursegen")
 
-WKHTMLTOPDF = "/nix/store/hxiay4lkq4389vxnhnb3d0pbaw6siwkw-wkhtmltopdf/bin/wkhtmltopdf"
+import shutil as _shutil
+WKHTMLTOPDF = _shutil.which("wkhtmltopdf") or "/nix/store/hxiay4lkq4389vxnhnb3d0pbaw6siwkw-wkhtmltopdf/bin/wkhtmltopdf"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
